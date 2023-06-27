@@ -1,5 +1,18 @@
 from django.contrib import admin
-from users.models import User
+from users.models import *
 
 
-admin.site.register(User)
+class ThemeInline(admin.TabularInline):
+    model = Themes
+    extra = 0
+
+
+admin.site.register(Cards)
+
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    inlines = (ThemeInline,)
+
+
+

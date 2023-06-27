@@ -1,1 +1,4 @@
 {% extends "main/base.html" %}
+{% block content %}
+{{request.user.get_super_themes}}
+{% endblock %}
