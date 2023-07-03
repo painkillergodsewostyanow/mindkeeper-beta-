@@ -1,4 +1,14 @@
 {% extends "main/base.html" %}
 {% block content %}
-{{request.user.get_super_themes}}
+{% if themes %}
+    <div>
+        {% for theme in themes %}
+            <div><a href="{% url 'main:open_theme' theme.pk %}">{{theme.title}}</a></div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div>
+        <span>Увас еще нету тем <a href="#">СОЗДАТЬ?)</a></span>
+    </div>
+{% endif %}
 {% endblock %}

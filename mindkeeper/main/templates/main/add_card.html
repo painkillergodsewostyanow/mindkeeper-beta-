@@ -1,0 +1,9 @@
+{% extends "main/base.html" %}
+{% block content %}
+<form action="{% url 'main:add_card' %}" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="theme" value="{{theme}}">
+    {{form.as_p}}
+    <button TYPE="submit">{{action}}</button>
+</form>
+{% endblock %}

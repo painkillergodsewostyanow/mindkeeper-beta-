@@ -1,0 +1,13 @@
+{% extends "users/base.html" %}
+{% block content %}
+
+    <div>
+        {{card.title}}
+    </div>
+    <div>
+        {{card.content}}
+    </div>
+    <div>
+        <img src="{{card.image.url}}" alt="">
+    </div>
+{% endblock %}

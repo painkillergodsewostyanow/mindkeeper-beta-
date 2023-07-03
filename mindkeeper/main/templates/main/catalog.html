@@ -1,0 +1,56 @@
+{% extends "users/base.html" %}
+{% block content %}
+    <div>Тема - {{theme.title}}</div>
+    {% if themes %}
+        <div>
+            <div>Темы: </div>
+            {% for object in themes %}
+            <div>
+                <a href="{% url 'main:del_theme' object.pk %}">X</a>
+                <h1><a href="{% url 'main:open_theme' object.pk %}">{{object.title}}</a></h1>
+            </div>
+            {% endfor %}
+            {% if theme %}
+            <div style="float:right"><a href="{% url 'main:add_theme_form' theme.pk %}">Добавить тему</a></div>
+            {% else %}
+            <div style="float:right"><a href="{% url 'main:add_theme_form' %}">Добавить тему</a></div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div>
+            Подтем нет
+        </div>
+            {% if theme %}
+            <div style="float:right"><a href="{% url 'main:add_theme_form' theme.pk %}">Добавить тему</a></div>
+            {% else %}
+            <div style="float:right"><a href="{% url 'main:add_theme_form' %}">Добавить тему</a></div>
+            {% endif %}
+    {% endif %}
+    {% if cards %}
+        <div>
+            <div>Карточки: </div>
+            {% for object in cards %}
+            <div>
+                <a href="{% url 'main:del_card' object.pk %}">X</a>
+                <h1><a href="{% url 'main:open_card' object.pk %}">{{object.title}}</a></h1>
+            </div>
+
+            {% endfor %}
+            {% if theme %}
+            <div style="float:right"><a href="{% url 'main:add_card_form' theme.pk %}">Добавить карточку</a></div>
+            {% else %}
+            <div style="float:right"><a href="{% url 'main:add_card_form'   %}">Добавить карточку</a></div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div>
+            Карточек нет
+        </div>
+        {% if theme %}
+        <div style="float:right"><a href="{% url 'main:add_card_form' theme.pk %}">Создать карточку</a></div>
+        {% else %}
+         <div style="float:right"><a href="{% url 'main:add_card_form' %}">Создать карточку</a></div
+        {% endif %}
+
+    {% endif %}
+{% endblock %}

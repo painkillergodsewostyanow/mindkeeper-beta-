@@ -1,13 +1,6 @@
 from django.contrib import admin
 from users.models import *
-
-
-class ThemeInline(admin.TabularInline):
-    model = Themes
-    extra = 0
-
-
-admin.site.register(Cards)
+from main.admin import ThemeInline
 
 
 @admin.register(User)
