@@ -1,5 +1,6 @@
 {% extends "main/base.html" %}
 {% block content %}
+
 {% if themes %}
     <div>
         {% for theme in themes %}
@@ -8,7 +9,11 @@
     </div>
 {% else %}
     <div>
-        <span>Увас еще нету тем <a href="#">СОЗДАТЬ?)</a></span>
+        {% if request.user.is_authenticated %}
+        <span>Увас еще нету тем <a href="{% url 'main:add_theme_form' %}">СОЗДАТЬ?)</a></span>
+        {% else %}
+        <span>Увас еще нету тем <a href="{% url 'users:login' %}">СОЗДАТЬ?)</a></span>
+        {% endif %}
     </div>
 {% endif %}
 {% endblock %}

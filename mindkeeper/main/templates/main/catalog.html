@@ -1,4 +1,4 @@
-{% extends "users/base.html" %}
+{% extends "main/base.html" %}
 {% block content %}
     <div>Тема - {{theme.title}}</div>
     {% if themes %}
@@ -11,9 +11,9 @@
             </div>
             {% endfor %}
             {% if theme %}
-            <div style="float:right"><a href="{% url 'main:add_theme_form' theme.pk %}">Добавить тему</a></div>
+                <div style="float:right"><a href="{% url 'main:add_theme_form' theme.pk %}">Добавить тему</a></div>
             {% else %}
-            <div style="float:right"><a href="{% url 'main:add_theme_form' %}">Добавить тему</a></div>
+                <div style="float:right"><a href="{% url 'main:add_theme_form' %}">Добавить тему</a></div>
             {% endif %}
         </div>
     {% else %}

@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.views.generic import TemplateView, ListView
 from django.shortcuts import render, HttpResponseRedirect, redirect
 from .models import *
@@ -9,20 +10,24 @@ class IndexTemplateView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(IndexTemplateView, self).get_context_data()
-        context['themes'] = Themes.get_super_themes_by_user(self.request.user)
+        if self.request.user.is_authenticated:
+            context['themes'] = Themes.get_super_themes_by_user(self.request.user)
         return context
 
 # TODO(сделать дать возможность делать темы и карты приватными)
 # TODO(сделать что бы показывались только карточки пользователя в профиле)
 
 
+@login_required
 def super_theme_and_card_list_view(request):
-    context = {
-        "themes": Themes.get_super_themes_by_user(request.user),
-        "cards": Cards.get_super_cards_by_user(request.user)
-    }
+    if request.user.is_authenticated:
+        return render(request, "main/catalog.html", {
+                "themes": Themes.get_super_themes_by_user(request.user),
+                "cards": Cards.get_super_cards_by_user(request.user)
+            })
+    else:
+        return render(request, "main/catalog.html")
 
-    return render(request, "main/catalog.html", context)
 # class SuperThemeListView(ListView):
 #     model = Themes
 #     template_name = "main/catalog.html"
@@ -33,7 +38,8 @@ def super_theme_and_card_list_view(request):
 #         return queryset
 
 
-def open_theme(request, theme):
+@login_required
+def open_user_theme(request, theme):
     # TODO(if is_private)
     context = {
         'theme': Themes.objects.filter(pk=theme).first,
@@ -44,7 +50,8 @@ def open_theme(request, theme):
     return render(request, "main/catalog.html", context)
 
 
-def open_card(request, card,):
+@login_required
+def open_user_card(request, card,):
     # TODO(if is_private)
     context = {
         "card": Cards.objects.filter(pk=card).first
@@ -53,6 +60,7 @@ def open_card(request, card,):
     return render(request, "main/card.html", context)
 
 
+@login_required
 def add_card_form(request, theme=None):
     form = AddCardForm()
     return render(request, "main/add_card.html", {'form': form, 'theme': theme,
@@ -60,11 +68,13 @@ def add_card_form(request, theme=None):
                                                     })
 
 
+@login_required
 def add_theme_form(request, theme=None):
     form = AddThemeForm()
     return render(request, "main/add_theme.html", {'form': form, 'theme': theme, 'action': 'Добавить тему'})
 
 
+@login_required
 def add_card(request):
     is_private = 'is_private' in request.POST
     theme = Themes.objects.get(pk=request.POST['theme']) if request.POST['theme'] != 'None' else None
@@ -81,6 +91,7 @@ def add_card(request):
     return redirect('main:index')
 
 
+@login_required
 def add_theme(request):
     is_private = 'is_private' in request.POST
     theme = Themes.objects.get(pk=request.POST['theme']) if request.POST['theme'] != 'None' else None
@@ -95,6 +106,7 @@ def add_theme(request):
     return redirect('main:index')
 
 
+@login_required
 def del_theme(request, theme):
     theme = Themes.objects.filter(pk=theme).first()
     if theme:
@@ -103,8 +115,15 @@ def del_theme(request, theme):
     return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
+@login_required
 def del_card(request, card):
     card = Cards.objects.filter(pk=card).first()
     if card:
         card.delete()
+    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+
+def global_search(request):
+    # TODO()
+    print(request.GET)
     return HttpResponseRedirect(request.META['HTTP_REFERER'])

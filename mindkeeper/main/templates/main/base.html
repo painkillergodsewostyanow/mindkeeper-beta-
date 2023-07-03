@@ -1,10 +1,36 @@
+{% load static %}
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>MINDKEEPER</title>
+    <link rel="stylesheet" href="{% static 'css/main_style.css' %}">
+    {% block css %}
+    {% endblock %}
 </head>
 <body>
+<div class="header">
+
+    <div class="search">
+        <form action="{% url 'main:global_search' %}" method="get">
+            <input type="text" name="query">
+            <button type="submit">ПОИСК</button>
+        </form>
+        <div>
+            {% if request.user.is_authenticated %}
+                <a class="profile" href="#">Профиль</a>
+                <a class="logout" href="{% url 'users:logout' %}">Выйти</a>
+            {% else %}
+                <a class="reg" href="{% url 'users:reg' %}">Зарегистрироваться</a>
+                <a class="login" href="{% url 'users:login' %}">Войти</a>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
 {% block content %}
 {% endblock %}
 </body>
