@@ -1,6 +1,8 @@
-{% extends "users/base.html" %}
+{% extends "main/base.html" %}
 {% block content %}
-
+    <div>
+        {{message}}
+    </div>
     <div>
         {{card.title}}
     </div>
@@ -8,6 +10,8 @@
         {{card.content}}
     </div>
     <div>
-        <img src="{{card.image.url}}" alt="">
+        {% if card.image %}
+            <img src="{{card.image.url}}" alt="">
+        {% endif %}
     </div>
 {% endblock %}

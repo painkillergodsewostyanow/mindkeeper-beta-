@@ -3,6 +3,7 @@
 <form action="{% url 'main:add_theme' %}" method="POST" enctype="multipart/form-data">
     {% csrf_token %}
     <input type="hidden" name="theme" value="{{theme}}">
+    <input type="hidden" name="HTTP_REFERER" value="{{HTTP_REFERER}}">
     {{form.as_p}}
     <button TYPE="submit">{{action}}</button>
 </form>

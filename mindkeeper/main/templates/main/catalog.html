@@ -1,56 +1,73 @@
 {% extends "main/base.html" %}
 {% block content %}
-    <div>Тема - {{theme.title}}</div>
-    {% if themes %}
+{% if message %}
+    <h1>{{message}}</h1>
+{% else %}
+    <div>Тема - {{father_theme.title}}</div>
+    {% if father_theme %}
         <div>
             <div>Темы: </div>
             {% for object in themes %}
             <div>
-                <a href="{% url 'main:del_theme' object.pk %}">X</a>
+                {% if father_theme.user == request.user %}
+                    <a href="{% url 'main:del_theme' object.pk %}">X</a>
+                {% endif %}
                 <h1><a href="{% url 'main:open_theme' object.pk %}">{{object.title}}</a></h1>
             </div>
             {% endfor %}
-            {% if theme %}
-                <div style="float:right"><a href="{% url 'main:add_theme_form' theme.pk %}">Добавить тему</a></div>
-            {% else %}
-                <div style="float:right"><a href="{% url 'main:add_theme_form' %}">Добавить тему</a></div>
-            {% endif %}
+
+                {% if father_theme %}
+                    <div style="float:right"><a href="{% url 'main:add_theme_form' father_theme.pk %}">Добавить тему</a></div>
+                {% else %}
+                    <div style="float:right"><a href="{% url 'main:add_theme_form' %}">Добавить тему</a></div>
+                {% endif %}
+
         </div>
     {% else %}
         <div>
             Подтем нет
         </div>
-            {% if theme %}
-            <div style="float:right"><a href="{% url 'main:add_theme_form' theme.pk %}">Добавить тему</a></div>
-            {% else %}
-            <div style="float:right"><a href="{% url 'main:add_theme_form' %}">Добавить тему</a></div>
+            {% if father_theme.user == request.user %}
+                {% if father_theme %}
+                <div style="float:right"><a href="{% url 'main:add_theme_form' father_theme.pk %}">Добавить тему</a></div>
+                {% else %}
+                <div style="float:right"><a href="{% url 'main:add_theme_form' %}">Добавить тему</a></div>
+                {% endif %}
             {% endif %}
+
     {% endif %}
     {% if cards %}
         <div>
             <div>Карточки: </div>
             {% for object in cards %}
             <div>
-                <a href="{% url 'main:del_card' object.pk %}">X</a>
+                {% if father_theme.user == request.user %}
+                    <a href="{% url 'main:del_card' object.pk %}">X</a>
+                {% endif %}
                 <h1><a href="{% url 'main:open_card' object.pk %}">{{object.title}}</a></h1>
             </div>
 
             {% endfor %}
-            {% if theme %}
-            <div style="float:right"><a href="{% url 'main:add_card_form' theme.pk %}">Добавить карточку</a></div>
-            {% else %}
-            <div style="float:right"><a href="{% url 'main:add_card_form'   %}">Добавить карточку</a></div>
+            {% if father_theme.user == request.user %}
+                {% if father_theme %}
+                <div style="float:right"><a href="{% url 'main:add_card_form' father_theme.pk %}">Добавить карточку</a></div>
+                {% else %}
+                <div style="float:right"><a href="{% url 'main:add_card_form'   %}">Добавить карточку</a></div>
+                {% endif %}
             {% endif %}
         </div>
     {% else %}
         <div>
             Карточек нет
         </div>
-        {% if theme %}
-        <div style="float:right"><a href="{% url 'main:add_card_form' theme.pk %}">Создать карточку</a></div>
-        {% else %}
-         <div style="float:right"><a href="{% url 'main:add_card_form' %}">Создать карточку</a></div
+        {% if father_theme.user == request.user %}
+            {% if father_theme %}
+            <div style="float:right"><a href="{% url 'main:add_card_form' father_theme.pk %}">Создать карточку</a></div>
+            {% else %}
+             <div style="float:right"><a href="{% url 'main:add_card_form' %}">Создать карточку</a></div
+            {% endif %}
         {% endif %}
 
     {% endif %}
+{% endif %}
 {% endblock %}
