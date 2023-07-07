@@ -6,7 +6,7 @@
 .storage-preview{
 
 	color:white;
-	background-color: black;
+	background-color: #353535;
 	padding: 4vw;
 	display: inline-block;
 	border-radius: 2vw;
@@ -22,12 +22,14 @@
 
 .storage__link{
 
+    font-size:1.8vw;
 	margin-bottom: 0.6vw;
 
 }
 
 .storage-preview__super_theme{
 
+    font-size: 1.8vw;
 	margin-left: 2.8vw;
 	margin-bottom: 0.6vw;
 
@@ -35,6 +37,7 @@
 
 .storage-preview__super_theme__item{
 
+    font-size: 1.4vw;
 	margin-left: 2vw;
 	margin-top: 0.2vw;
 

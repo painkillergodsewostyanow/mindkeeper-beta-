@@ -1,80 +1,102 @@
 {% extends "main/base.html" %}
+
+{% load static %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/catalog_style.css' %}">
+{% endblock %}
 {% block content %}
 {% if message %}
     <h1>{{message}}</h1>
 {% else %}
-    {% if father_theme %}
-    <div>Тема - {{father_theme.title}}</div>
-    {% endif %}
-    {% if themes %}
-        <div>
-            <div>Темы: </div>
-            {% for object in themes %}
-            <div>
-                {% if father_theme %}
-                    {% if father_theme.user == request.user %}
-                    <a href="{% url 'main:del_theme' object.pk %}">X</a>
-                    {% endif %}
-                {% else %}
-                    {% if object.user == request.user %}
-                        <a href="{% url 'main:del_theme' object.pk %}">X</a>
-                    {% endif %}
-                {% endif %}
-                <h1><a href="{% url 'main:open_theme' object.pk %}">{{object.title}}</a></h1>
+    <div class="container">
+        {% if father_theme %}
+            <div class="father_theme">
+                {{father_theme.title}}
             </div>
-            {% endfor %}
-
-                {% if father_theme %}
-                    <div style="float:right"><a href="{% url 'main:add_theme_form' father_theme.pk %}">Добавить тему</a></div>
-                {% else %}
-                    <div style="float:right"><a href="{% url 'main:add_theme_form' %}">Добавить тему</a></div>
-                {% endif %}
-    {% else %}
-        </div>
-        <div>
-            Подтем нет
-        </div>
-            {% if father_theme.user == request.user %}
-                {% if father_theme %}
-                <div style="float:right"><a href="{% url 'main:add_theme_form' father_theme.pk %}">Добавить тему</a></div>
-                {% else %}
-                <div style="float:right"><a href="{% url 'main:add_theme_form' %}">Добавить тему</a></div>
-                {% endif %}
-            {% endif %}
-
-    {% endif %}
-    {% if cards %}
-        <div>
-            <div>Карточки: </div>
-            {% for object in cards %}
-            <div>
-                {% if father_theme.user == request.user %}
-                    <a href="{% url 'main:del_card' object.pk %}">X</a>
-                {% endif %}
-                <h1><a href="{% url 'main:open_card' object.pk %}">{{object.title}}</a></h1>
-            </div>
-
-            {% endfor %}
-            {% if father_theme.user == request.user %}
-                {% if father_theme %}
-                <div style="float:right"><a href="{% url 'main:add_card_form' father_theme.pk %}">Добавить карточку</a></div>
-                {% else %}
-                <div style="float:right"><a href="{% url 'main:add_card_form'   %}">Добавить карточку</a></div>
-                {% endif %}
-            {% endif %}
-        </div>
-    {% else %}
-        <div>
-            Карточек нет
-        </div>
-        {% if father_theme.user == request.user %}
-            {% if father_theme %}
-            <div style="float:right"><a href="{% url 'main:add_card_form' father_theme.pk %}">Создать карточку</a></div>
-            {% else %}
-             <div style="float:right"><a href="{% url 'main:add_card_form' %}">Создать карточку</a></div
-            {% endif %}
         {% endif %}
+            <div class="label">
+			Темы:
+		    </div>
+            <ul class="catalog_place">
+                {% for theme in themes %}
+                    <li class="wrapper">
+                    <a href="{% url 'main:open_theme' theme.pk %}">
+                    <div class="card">
+                        <object>
+                            <a href="{% url 'main:del_theme' theme.pk %}" class="cross	">X</a>
+                        </object>
+                        {% if theme.image %}
+                            <div class="photo">
+                                <img src="{{theme.image.url}}" alt="">
+                            </div>
+                        {% else %}
+                            <div class="photo">
+                                <img src="" alt="">
+                            </div>
+                        {% endif %}
+                        <p class="object_title">{{theme.title}}</p>
+                    </div>
+                    </a>
+                    </li>
+                {% endfor %}
+                <li class="wrapper">
+                    {% if father_theme %}
+                        <a href="{% url 'main:add_theme_form' father_theme.pk %}">
+                    {% else %}
+                         <a href="{% url 'main:add_theme_form' %}">
+                    {% endif %}
+                    <div class="card">
+                        <div class="photo">
+                            <img src="" alt="">
+                        </div>
+                        <p class="object_title">Новая тема</p>
+                    </div>
+                    </a>
+                    </li>
+            </ul>
+    </div>
+    <div class="label">
+		Карточки:
+	</div>
+    <div class="container">
+        <ul class="catalog_place">
+            {% for card in cards %}
+                <li class="wrapper">
+                    <a href="{% url 'main:open_card' card.pk %}">
+                    <div class="card">
+                        <object>
+                            <a href="{% url 'main:del_card' card.pk %}" class="cross">X</a>
+                        </object>
+                        {% if card.image %}
+                            <div class="photo">
+                                <img src="{{ card.image.url }}" alt="">
+                            </div>
+                        {% else %}
+                            <div class="photo">
+                                <img src="#" alt="">
+                            </div>
+                        {% endif %}
+                        <p class="object_title">{{card.title}}</p>
+                    </div>
+                    </a>
+                </li>
+            {% endfor %}
+            <li class="wrapper">
+                    {% if father_theme %}
+                        <a href="{% url 'main:add_card_form' father_theme.pk %}">
+                    {% else %}
+                         <a href="{% url 'main:add_card_form' %}">
+                    {% endif %}
+                    <div class="card">
+                        <div class="photo">
+                            <img src="" alt="">
+                        </div>
+                        <p class="object_title">Новая карточка</p>
+                    </div>
+                    </a>
+            </li>
+        </ul>
+    </div>
 
-    {% endif %}
 {% endif %}
 {% endblock %}
