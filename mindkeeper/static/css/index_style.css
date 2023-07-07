@@ -1,0 +1,49 @@
+.container{
+
+	margin-top: 2vw;
+
+}
+.storage-preview{
+
+	color:white;
+	background-color: black;
+	padding: 4vw;
+	display: inline-block;
+	border-radius: 2vw;
+
+}
+
+.storage-preview a {
+
+	text-decoration: none;
+	color:white;
+
+}
+
+.storage__link{
+
+	margin-bottom: 0.6vw;
+
+}
+
+.storage-preview__super_theme{
+
+	margin-left: 2.8vw;
+	margin-bottom: 0.6vw;
+
+}
+
+.storage-preview__super_theme__item{
+
+	margin-left: 2vw;
+	margin-top: 0.2vw;
+
+}
+.storage-preview__super_theme__item__lvl2{
+
+	margin-left: 4vw;
+	margin-top: 0.2vw;
+
+}
+
+

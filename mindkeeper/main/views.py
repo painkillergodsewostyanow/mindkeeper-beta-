@@ -11,7 +11,7 @@ class IndexTemplateView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(IndexTemplateView, self).get_context_data()
         if self.request.user.is_authenticated:
-            context['themes'] = Themes.get_super_themes_by_user(self.request.user)
+            context['super_themes'] = Themes.get_super_themes_by_user(self.request.user)
         return context
 
 
@@ -46,14 +46,16 @@ def open_theme(request, theme):
         "themes": Themes.objects.filter(sub_theme_to=theme),
         "cards": Cards.objects.filter(theme=theme)
     }
+    if theme:
+        if theme.is_private:
+            if request.user != theme.user:
 
-    if theme.is_private:
-        if request.user != theme.user:
-
-            if request.user not in theme.users_with_access():
-                context = {
-                    'message': 'у вас нет доступа, запросить: # TODO()'  # TODO()
-                }
+                if request.user not in theme.users_with_access():
+                    context = {
+                        'message': 'у вас нет доступа, запросить: # TODO()'  # TODO()
+                    }
+    else:
+        pass  # TODO(404)
 
     return render(request, "main/catalog.html", context)
 
@@ -62,46 +64,68 @@ def open_theme(request, theme):
 def open_card(request, card):
     card = Cards.objects.filter(pk=card).first()
     context = {'card': card}
-
-    if card.is_private:
-        if request.user != card.user:
-            if request.user not in card.users_with_access():
-                context = {
-                    'message': 'у вас нет доступа, запросить: # TODO()'  # TODO()
-                }
+    if card:
+        if card.is_private:
+            if request.user != card.user:
+                if request.user not in card.users_with_access():
+                    context = {
+                        'message': 'у вас нет доступа, запросить: # TODO()'  # TODO()
+                    }
+    else:
+        pass  # TODO(404)
 
     return render(request, "main/card.html", context)
 
 
 @login_required
 def add_card_form(request, theme=None):
-    if request.user != Cards.objects.get(theme=theme).user:
-        print('доступа нет')
-        if request.META.get('HTTP_REFERER', False):
-            return HttpResponseRedirect(request.META['HTTP_REFERER'])
-        else:
-            return redirect('main:index')
+    theme = Themes.objects.filter(pk=theme).first()
 
+    if theme:
+        if request.user != theme.user:
+            print('доступа нет')
+            if request.META.get('HTTP_REFERER', False):
+                return HttpResponseRedirect(request.META['HTTP_REFERER'])
+            else:
+                return redirect('main:index')
+    form = AddCardForm()
+    if theme:
+
+        context = {'form': form, 'theme': theme.pk,
+                   'action': 'Добавить карточку',
+                   'HTTP_REFERER': request.META['HTTP_REFERER']}
     else:
-        form = AddCardForm()
-        return render(request, "main/add_card.html", {'form': form, 'theme': theme,
-                                                      'action': 'Добавить карточку',
-                                                      'HTTP_REFERER': request.META['HTTP_REFERER']})
+        context = {'form': form,
+                   'action': 'Добавить карточку',
+                   'HTTP_REFERER': request.META['HTTP_REFERER']}
+
+    return render(request, "main/add_card.html", context)
 
 
 @login_required
 def add_theme_form(request, theme=None):
-    if request.user != Themes.objects.get(pk=theme).user:
-        print('доступа нет')
-        if request.META.get('HTTP_REFERER', False):
-            return HttpResponseRedirect(request.META['HTTP_REFERER'])
-        else:
-            return redirect('main:index')
+    theme = Themes.objects.filter(pk=theme).first()
 
+    if theme:
+        if request.user != theme.user:
+            print('доступа нет')
+            if request.META.get('HTTP_REFERER', False):
+                return HttpResponseRedirect(request.META['HTTP_REFERER'])
+            else:
+                return redirect('main:index')
+    form = AddThemeForm()
+    if theme:
+
+        context = {'form': form, 'theme': theme.pk,
+                   'action': 'Добавить тему',
+                   'HTTP_REFERER': request.META['HTTP_REFERER']}
     else:
-        form = AddThemeForm()
-        return render(request, "main/add_theme.html", {'form': form, 'theme': theme, 'action': 'Добавить тему',
-                                                       'HTTP_REFERER': request.META['HTTP_REFERER']})
+        context = {'form': form,
+                   'action': 'Добавить тему',
+                   'HTTP_REFERER': request.META['HTTP_REFERER']}
+
+    return render(request, "main/add_theme.html", context)
+
 
 
 @login_required
@@ -123,7 +147,7 @@ def add_card(request):
 @login_required
 def add_theme(request):
     is_private = 'is_private' in request.POST
-    theme = Themes.objects.get(pk=request.POST['theme']) if request.POST['theme'] != 'None' else None
+    theme = Themes.objects.get(pk=request.POST['theme']) if request.POST['theme'] else None
     image = request.FILES.get('image', None)
     Themes.objects.create(
         image=image,

@@ -28,6 +28,12 @@ class Themes(models.Model):
             lst_users_with_access.append(User.objects.get(pk=row['user']))
         return lst_users_with_access
 
+    def get_sub_themes(self):
+        return Themes.objects.filter(sub_theme_to=self)
+
+    def get_cards(self):
+        return Cards.objects.filter(theme=self)
+
 
 class Cards(models.Model):
     # TODO(Возможность выдавать доступ определенным людям)

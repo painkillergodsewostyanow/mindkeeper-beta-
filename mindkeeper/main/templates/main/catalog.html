@@ -3,14 +3,22 @@
 {% if message %}
     <h1>{{message}}</h1>
 {% else %}
-    <div>Тема - {{father_theme.title}}</div>
     {% if father_theme %}
+    <div>Тема - {{father_theme.title}}</div>
+    {% endif %}
+    {% if themes %}
         <div>
             <div>Темы: </div>
             {% for object in themes %}
             <div>
-                {% if father_theme.user == request.user %}
+                {% if father_theme %}
+                    {% if father_theme.user == request.user %}
                     <a href="{% url 'main:del_theme' object.pk %}">X</a>
+                    {% endif %}
+                {% else %}
+                    {% if object.user == request.user %}
+                        <a href="{% url 'main:del_theme' object.pk %}">X</a>
+                    {% endif %}
                 {% endif %}
                 <h1><a href="{% url 'main:open_theme' object.pk %}">{{object.title}}</a></h1>
             </div>
@@ -21,9 +29,8 @@
                 {% else %}
                     <div style="float:right"><a href="{% url 'main:add_theme_form' %}">Добавить тему</a></div>
                 {% endif %}
-
-        </div>
     {% else %}
+        </div>
         <div>
             Подтем нет
         </div>

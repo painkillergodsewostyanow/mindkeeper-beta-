@@ -1,19 +1,35 @@
 {% extends "main/base.html" %}
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/index_style.css' %}">
+{% endblock %}
 {% block content %}
-
-{% if themes %}
-    <div>
-        {% for theme in themes %}
-            <div><a href="{% url 'main:open_theme' theme.pk %}">{{theme.title}}</a></div>
-        {% endfor %}
-    </div>
-{% else %}
-    <div>
-        {% if request.user.is_authenticated %}
-        <span>Увас еще нету тем <a href="{% url 'main:add_theme_form' %}">СОЗДАТЬ?)</a></span>
-        {% else %}
-        <span>Увас еще нету тем <a href="{% url 'users:login' %}">СОЗДАТЬ?)</a></span>
-        {% endif %}
-    </div>
-{% endif %}
+<div class="container">
+		<div class="storage-preview">
+            {% if super_themes %}
+                <div class="storage__link"><a href="{% url 'main:storage' %}">ВАША КАРТОТЕКА</a></div>
+                {% for super_theme in super_themes %}
+                    <div class="storage-preview__super_theme">
+                        <a href="{% url 'main:open_theme' super_theme.pk %}">{{super_theme}}</a>
+                        {% if super_theme.get_sub_themes %}
+                            {% for sub_theme in super_theme.get_sub_themes %}
+                                <div class="storage-preview__super_theme__item">
+                                    <a href="{% url 'main:open_theme' sub_theme.pk %}">{{sub_theme}}..</a>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        {% if super_theme.get_cards %}
+                            {% for card in super_theme.get_cards %}
+                                <div class="storage-preview__super_theme__item">
+                                    <a href="{% url 'main:open_card' card.pk %}">{{card.title}}</a>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="storage__link"><a href="{% url 'main:storage' %}">СОЗДАТЬ ТЕМУ</a></div>
+            {% endif %}
+        </div>
+</div>
 {% endblock %}

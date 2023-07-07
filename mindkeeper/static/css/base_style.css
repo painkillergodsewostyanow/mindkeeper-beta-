@@ -1,0 +1,46 @@
+.header{
+
+    background-color: black;
+    height: 8vw;
+    border-radius: 2vw;
+
+}
+
+.title {
+
+	font-size: 4vw;
+	text-align: center;
+	vertical-align: middle;
+
+}
+
+.title a {
+	color:white;
+	text-decoration: none;
+}
+
+.nav{
+
+	color:white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+}
+.nav__item:last-child {
+
+	margin-right: 0px;
+
+}
+.nav__item{
+
+	margin-right: 2vw;
+	font-size: 2vw;
+
+}
+.nav__item a {
+
+	color:white;
+	text-decoration: none;
+
+}
