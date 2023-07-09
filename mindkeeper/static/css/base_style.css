@@ -1,11 +1,16 @@
 .header{
 
-    background-color: #353535;
+    margin-top: 2vw;
+    background-color: black;
     height: 8vw;
     border-radius: 2vw;
 
 }
+body{
 
+    background-color:#cbc7c1;
+
+}
 .title {
 
 	font-size: 4vw;
@@ -34,7 +39,7 @@
 }
 .nav__item{
 
-	margin-right: 2vw;
+	margin-right: calc(2vw + 2vh);
 	font-size: 2vw;
 
 }
@@ -43,4 +48,10 @@
 	color:white;
 	text-decoration: none;
 
+}
+
+@media only screen and (max-device-width:480px) {
+	.nav__item {
+		font-size: 2.6vw;
+	}
 }

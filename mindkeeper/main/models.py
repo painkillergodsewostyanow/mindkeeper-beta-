@@ -4,7 +4,6 @@ from users.models import User
 
 
 class Themes(models.Model):
-    # TODO(Возможность выдавать доступ определенным людям)
     image = models.ImageField(upload_to="themes_image", blank=True)
     is_private = models.BooleanField(default=False)
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Автор")

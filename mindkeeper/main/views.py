@@ -127,10 +127,10 @@ def add_theme_form(request, theme=None):
     return render(request, "main/add_theme.html", context)
 
 
-
 @login_required
 def add_card(request):
     is_private = 'is_private' in request.POST
+
     theme = Themes.objects.get(pk=request.POST['theme']) if request.POST['theme'] else None
     image = request.FILES.get('image', None)
     Cards.objects.create(

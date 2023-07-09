@@ -14,9 +14,9 @@
                 {{father_theme.title}}
             </div>
         {% endif %}
-            <div class="label">
-			Темы:
-		    </div>
+        <div class="label">
+            Темы:
+        </div>
             <ul class="catalog_place">
                 {% for theme in themes %}
                     <li class="wrapper">
@@ -47,7 +47,7 @@
                     {% endif %}
                     <div class="card">
                         <div class="photo">
-                            <img src="" alt="">
+                            <img src="{% static 'img/plus.jpg' %}" alt="">
                         </div>
                         <p class="object_title">Новая тема</p>
                     </div>
@@ -55,10 +55,10 @@
                     </li>
             </ul>
     </div>
-    <div class="label">
-		Карточки:
-	</div>
     <div class="container">
+        <div class="label">
+            Карточки:
+        </div>
         <ul class="catalog_place">
             {% for card in cards %}
                 <li class="wrapper">
@@ -89,7 +89,7 @@
                     {% endif %}
                     <div class="card">
                         <div class="photo">
-                            <img src="" alt="">
+                            <img src="{% static 'img/plus.jpg' %}" alt="">
                         </div>
                         <p class="object_title">Новая карточка</p>
                     </div>
