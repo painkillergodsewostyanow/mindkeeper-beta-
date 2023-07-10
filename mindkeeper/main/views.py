@@ -1,8 +1,10 @@
 from django.contrib.auth.decorators import login_required
-from django.views.generic import TemplateView, ListView
+from django.views.generic import TemplateView, ListView, UpdateView
 from django.shortcuts import render, HttpResponseRedirect, redirect
 from .models import *
 from .forms import *
+from django.urls import reverse
+from .scripts import check_access
 
 
 class IndexTemplateView(TemplateView):
@@ -46,14 +48,13 @@ def open_theme(request, theme):
         "themes": Themes.objects.filter(sub_theme_to=theme),
         "cards": Cards.objects.filter(theme=theme)
     }
+
     if theme:
         if theme.is_private:
-            if request.user != theme.user:
-
-                if request.user not in theme.users_with_access():
-                    context = {
-                        'message': 'у вас нет доступа, запросить: # TODO()'  # TODO()
-                    }
+            if not check_access(request.user, to=theme, users_with_access=theme.users_with_access()):
+                context = {
+                    'message': 'у вас нет доступа, запросить: # TODO()'  # TODO()
+                }
     else:
         pass  # TODO(404)
 
@@ -66,11 +67,10 @@ def open_card(request, card):
     context = {'card': card}
     if card:
         if card.is_private:
-            if request.user != card.user:
-                if request.user not in card.users_with_access():
-                    context = {
-                        'message': 'у вас нет доступа, запросить: # TODO()'  # TODO()
-                    }
+            if not check_access(request.user, to=card, users_with_access=card.users_with_access()):
+                context = {
+                    'message': 'у вас нет доступа, запросить: # TODO()'  # TODO()
+                }
     else:
         pass  # TODO(404)
 
@@ -80,24 +80,20 @@ def open_card(request, card):
 @login_required
 def add_card_form(request, theme=None):
     theme = Themes.objects.filter(pk=theme).first()
-
+    form = CardForm()
     if theme:
-        if request.user != theme.user:
+        if not check_access(request.user, theme):
             print('доступа нет')
-            if request.META.get('HTTP_REFERER', False):
-                return HttpResponseRedirect(request.META['HTTP_REFERER'])
-            else:
-                return redirect('main:index')
-    form = AddCardForm()
-    if theme:
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
 
         context = {'form': form, 'theme': theme.pk,
                    'action': 'Добавить карточку',
-                   'HTTP_REFERER': request.META['HTTP_REFERER']}
+                   'HTTP_REFERER': request.META.get('HTTP_REFERER', '')}
+
     else:
         context = {'form': form,
                    'action': 'Добавить карточку',
-                   'HTTP_REFERER': request.META['HTTP_REFERER']}
+                   'HTTP_REFERER': request.META.get('HTTP_REFERER', '')}
 
     return render(request, "main/add_card.html", context)
 
@@ -105,24 +101,20 @@ def add_card_form(request, theme=None):
 @login_required
 def add_theme_form(request, theme=None):
     theme = Themes.objects.filter(pk=theme).first()
-
+    form = ThemeForm()
     if theme:
-        if request.user != theme.user:
+        if not check_access(request.user, theme):
             print('доступа нет')
-            if request.META.get('HTTP_REFERER', False):
-                return HttpResponseRedirect(request.META['HTTP_REFERER'])
-            else:
-                return redirect('main:index')
-    form = AddThemeForm()
-    if theme:
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
 
         context = {'form': form, 'theme': theme.pk,
                    'action': 'Добавить тему',
-                   'HTTP_REFERER': request.META['HTTP_REFERER']}
+                   'HTTP_REFERER': request.META.get('HTTP_REFERER', '')}
+
     else:
         context = {'form': form,
                    'action': 'Добавить тему',
-                   'HTTP_REFERER': request.META['HTTP_REFERER']}
+                   'HTTP_REFERER': request.META.get('HTTP_REFERER', '')}
 
     return render(request, "main/add_theme.html", context)
 
@@ -130,9 +122,9 @@ def add_theme_form(request, theme=None):
 @login_required
 def add_card(request):
     is_private = 'is_private' in request.POST
-
     theme = Themes.objects.get(pk=request.POST['theme']) if request.POST['theme'] else None
     image = request.FILES.get('image', None)
+
     Cards.objects.create(
         user=request.user,
         image=image,
@@ -141,7 +133,9 @@ def add_card(request):
         title=request.POST['title'], content=request.POST['content']
     )
 
-    return HttpResponseRedirect(request.POST['HTTP_REFERER'])
+    return HttpResponseRedirect(
+        request.POST['HTTP_REFERER'] if request.POST['HTTP_REFERER'] else reverse('main:storage')
+    )
 
 
 @login_required
@@ -149,6 +143,7 @@ def add_theme(request):
     is_private = 'is_private' in request.POST
     theme = Themes.objects.get(pk=request.POST['theme']) if request.POST['theme'] else None
     image = request.FILES.get('image', None)
+
     Themes.objects.create(
         image=image,
         is_private=is_private,
@@ -157,33 +152,72 @@ def add_theme(request):
         sub_theme_to=theme
     )
 
-    return HttpResponseRedirect(request.POST['HTTP_REFERER'])
+    return HttpResponseRedirect(
+        request.POST['HTTP_REFERER'] if request.POST['HTTP_REFERER'] else reverse('main:storage')
+    )
+
+
+class EditCard(UpdateView):
+    model = Cards
+    form_class = CardForm
+    template_name = 'main/change_card.html'
+
+    def get_success_url(self):
+        return reverse('main:storage')
+
+    def post(self, request, *args, **kwargs):
+        card = Cards.objects.get(pk=kwargs['pk'])
+        if card:
+            if not check_access(request.user, card):
+                print('доступа нет')
+                return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
+
+        post = super(EditCard, self).post(request, *args, **kwargs)
+        return post
+
+
+class EditTheme(UpdateView):
+    model = Themes
+    form_class = ThemeForm
+    template_name = 'main/change_theme.html'
+
+    def get_success_url(self):
+        return reverse('main:storage')
+
+    def post(self, request, *args, **kwargs):
+        theme = Themes.objects.get(pk=kwargs['pk'])
+        if theme:
+            if not check_access(request.user, theme):
+                print('доступа нет')
+                return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
+
+        post = super(EditTheme, self).post(request, *args, **kwargs)
+        return post
 
 
 @login_required
 def del_theme(request, theme):
     theme = Themes.objects.filter(pk=theme).first()
-    if theme:
-        if theme.user == request.user:
-            theme.delete()
 
+    if theme:
+        if check_access(request.user, theme):
+            theme.delete()
         else:
             print("Нет доступа")
 
-    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
 
 
 @login_required
 def del_card(request, card):
     card = Cards.objects.filter(pk=card).first()
     if card:
-        if card.user == request.user:
+        if check_access(request.user, card):
             card.delete()
-
         else:
             print("Нет доступа")
 
-    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
 
 
 def global_search(request):
