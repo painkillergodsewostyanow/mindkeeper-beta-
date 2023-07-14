@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, F
 from django.http import JsonResponse
 from django.views.generic import TemplateView, UpdateView
 from django.shortcuts import render, HttpResponseRedirect
@@ -59,9 +59,12 @@ def storage(request):
 def open_theme(request, theme):
     father_theme = theme
     theme = Themes.objects.filter(pk=theme).first()
+    if request.user.is_authenticated:
+        if not ThemeViews.objects.filter(theme=theme, user=request.user).first():
+            ThemeViews.objects.create(theme=theme, user=request.user)
 
     context = {
-        'father_theme': Themes.objects.filter(pk=father_theme).first,
+        'father_theme': Themes.objects.filter(pk=father_theme).first(),
         "themes": Themes.objects.filter(sub_theme_to=theme),
         "cards": Cards.objects.filter(theme=theme)
     }
@@ -80,6 +83,10 @@ def open_theme(request, theme):
 
 def open_card(request, card):
     card = Cards.objects.filter(pk=card).first()
+    if request.user.is_authenticated:
+        if not CardViews.objects.filter(card=card, user=request.user).first():
+            CardViews.objects.create(card=card, user=request.user)
+
     context = {'card': card}
     if card:
         if card.is_private:

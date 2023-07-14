@@ -41,6 +41,10 @@ class Themes(models.Model):
     def get_cards(self):
         return Cards.objects.filter(theme=self)
 
+    @property
+    def views(self):
+        return ThemeViews.objects.filter(theme=self).count()
+
 
 class Cards(models.Model):
     # TODO(Возможность выдавать доступ определенным людям)
@@ -78,6 +82,10 @@ class Cards(models.Model):
             lst_users_with_access.append(User.objects.get(pk=row['user']))
         return lst_users_with_access
 
+    @property
+    def views(self):
+        return CardViews.objects.filter(card=self).count()
+
 
 class CardAccess(models.Model):
     user = models.ForeignKey(to=User, on_delete=models.CASCADE)
@@ -101,3 +109,32 @@ class ThemeAccess(models.Model):
 
     def __str__(self):
         return f"{self.user}->{self.theme}"
+
+
+class ThemeViews(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    theme = models.ForeignKey(Themes, on_delete=models.CASCADE)
+
+
+class CardViews(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    card = models.ForeignKey(Cards, on_delete=models.CASCADE)
+
+# class ThemeLikes(models.Model):
+#     theme = models.ForeignKey(Themes, on_delete=models.CASCADE)
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#
+#
+# class CardLikes(models.Model):
+#     card = models.ForeignKey(Cards, on_delete=models.CASCADE)
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#
+#
+# class ThemeComment(models.Model):
+#     theme = models.ForeignKey(Themes, on_delete=models.CASCADE)
+#     content = models.TextField()
+#
+#
+# class CardComment(models.Model):
+#     card = models.ForeignKey(Cards, on_delete=models.CASCADE)
+#     content = models.TextField()

@@ -48,6 +48,7 @@
                                 </div>
                             {% endif %}
                             <p class="object_title">{{theme.title}}</p>
+                            <div>{{theme.views}}</div>
                         </div>
                         </a>
                         </li>
@@ -65,6 +66,7 @@
                                 </div>
                             {% endif %}
                             <p class="object_title">{{theme.title}}</p>
+                            <div class="views">{{theme.views}}</div>
                         </div>
                         </a>
                         </li>
@@ -73,13 +75,13 @@
                     <li class="wrapper">
                         {% if father_theme %}
                             {% if request.user == father_theme.user %}
-                                <a href="{% url 'main:add_theme_form' father_theme.pk %}">
-                            <div class="card">
-                                <div class="photo">
-                                    <img src="{% static 'img/plus.jpg' %}" alt="">
+                            <a href="{% url 'main:add_theme_form' father_theme.pk %}">
+                                <div class="card">
+                                    <div class="photo">
+                                        <img src="{% static 'img/plus.jpg' %}" alt="">
+                                    </div>
+                                    <p class="object_title">Новая тема</p>
                                 </div>
-                                <p class="object_title">Новая тема</p>
-                            </div>
                             </a>
                             </li>
                             {% endif %}
@@ -124,6 +126,7 @@
                                 </div>
                             {% endif %}
                             <p class="object_title">{{card.title}}</p>
+                            <div class="views">{{card.views}}</div>
                         </div>
                         </a>
                     </li>
@@ -141,6 +144,7 @@
                                 </div>
                             {% endif %}
                             <p class="object_title">{{card.title}}</p>
+                            <div class="views">{{card.views}}</div>
                         </div>
                         </a>
                     </li>
