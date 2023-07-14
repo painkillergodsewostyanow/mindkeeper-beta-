@@ -1,8 +1,71 @@
+.header{
+
+    margin-top: 2vw;
+    background-color: black;
+    height: 8vw;
+    border-radius: 2vw;
+
+}
+body{
+
+    background-color:#cbc7c1;
+
+}
+.title {
+
+	font-size: 4vw;
+	text-align: center;
+	vertical-align: middle;
+
+}
+
+.title a {
+	color:white;
+	text-decoration: none;
+}
+
+.nav{
+
+	color:white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+}
+.nav__item:last-child {
+
+	margin-right: 0px;
+
+}
+.nav__item{
+
+	margin-right: calc(2vw + 2vh);
+	font-size: 2vw;
+
+}
+.nav__item a {
+
+	color:white;
+	text-decoration: none;
+
+}
+
+@media only screen and (max-device-width:480px) {
+	.nav__item {
+		font-size: 2.6vw;
+	}
+}
+
+/* copy from there */
+
+
+
 .father_theme{
 	color:black;
 	font-size: 4vw;
 	text-align: center;
 	margin-top: 2vw;
+	margin-bottom: 2vw; 
 }
 
 .wrapper {
@@ -34,51 +97,46 @@
 	display: block;
 	border-radius: 2vw;
 	position: relative;
-	background: black;
+	background: #353535;
 	margin: 0 20px 20px 0;
 	text-decoration: none;
 	color: #474747;
 	z-index: 0;
-	height: calc(20vh + 10vw);
-	min-height: 200px;  
-	min-width: 200px;
-
+	height: 300px;
 }
 
 .catalog_place{
 	margin-left: -20px
 }
 
-.object_title{
+.object_title{ 
 
 	padding-top: calc(2vw + 2vh);
 	margin-bottom: -1vw;
 	text-align: center;
-	color: white;
+	color: white;	
 	margin: 0;
 
 }
 .photo{
 	margin: auto;
 	background-size: cover;
-	width: 70%;
-	height: 70%;
+	width: 74%;
+	height: 74%;
 	text-align: center;
-    border-radius: 2vw;
 }
 
 .photo img{
-    margin-top: calc(1vw + 2vh);
+	margin-top: 2vw;
+	margin-bottom: 2vw;
 	width: 100%;
-    height: 100%;
-    border-radius: 2vw;
+    height: 100%; 
 }
 .wrapper a {
 	text-decoration: none;
 }
 
 .label{
-    margin-top:2vw;
 	display: block;
 	font-size: 4vw;
 	margin-left: 20px
@@ -95,9 +153,13 @@
 	text-decoration: none;
 	color:white;
 }
+.cross a{
+	
+}
+
 form {text-align:center;}
 
-.input_query{
+.inpute_query{
 	margin-top: 2vw;
 	padding: 1vw;
 	padding-left:9vw;
@@ -106,5 +168,4 @@ form {text-align:center;}
 }
 form input {
 	text-align: center;
-	border-radius: 14px;
 }

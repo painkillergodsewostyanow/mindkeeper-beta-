@@ -1,7 +1,8 @@
 from django.contrib.auth.decorators import login_required
-from django.views.generic import TemplateView, ListView, UpdateView
-from django.shortcuts import render, HttpResponseRedirect, redirect
-from .models import *
+from django.db.models import Q
+from django.http import JsonResponse
+from django.views.generic import TemplateView, UpdateView
+from django.shortcuts import render, HttpResponseRedirect
 from .forms import *
 from django.urls import reverse
 from .scripts import check_access
@@ -14,18 +15,35 @@ class IndexTemplateView(TemplateView):
         context = super(IndexTemplateView, self).get_context_data()
         if self.request.user.is_authenticated:
             context['super_themes'] = Themes.get_super_themes_by_user(self.request.user)
+
         return context
 
 
 @login_required
-def super_theme_and_card_list_view(request):
-    if request.user.is_authenticated:
-        return render(request, "main/catalog.html", {
+def storage(request):
+    if request.GET.get('query', False):
+        context = {
+
+            'themes': set(list(Themes.objects.filter(title__icontains=request.GET['query'], user=request.user)) +
+                          list(Themes.objects.filter(sub_theme_to__in=Themes.objects
+                                                     .filter(title__icontains=request.GET['query'],
+                                                             user=request.user)))),
+
+            'cards': Cards.objects.filter(Q(title__icontains=request.GET['query']) |
+                                          Q(content__icontains=request.GET['query']))
+            .filter(user=request.user)
+
+        }
+
+    else:
+        context = {
+
             "themes": Themes.get_super_themes_by_user(request.user),
             "cards": Cards.get_super_cards_by_user(request.user)
-        })
-    else:
-        return render(request, "main/catalog.html")
+
+        }
+
+    return render(request, "main/catalog.html", context)
 
 
 # class SuperThemeListView(ListView):
@@ -38,7 +56,6 @@ def super_theme_and_card_list_view(request):
 #         return queryset
 
 
-@login_required
 def open_theme(request, theme):
     father_theme = theme
     theme = Themes.objects.filter(pk=theme).first()
@@ -61,7 +78,6 @@ def open_theme(request, theme):
     return render(request, "main/catalog.html", context)
 
 
-@login_required
 def open_card(request, card):
     card = Cards.objects.filter(pk=card).first()
     context = {'card': card}
@@ -221,6 +237,39 @@ def del_card(request, card):
 
 
 def global_search(request):
-    # TODO(Глобальный динамический поиск)
-    print(request.GET)
-    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+    # TODO(Логика поиска)
+
+    if request.GET.get('query', False):
+        context = {
+            'themes': Themes.objects.filter(title__icontains=request.GET['query'], is_private=False),
+
+            'cards': Cards.objects.filter(
+                Q(title__icontains=request.GET['query']) | Q(content__icontains=request.GET['query']))
+            .filter(is_private=False)
+        }
+    else:
+        # TODO(Предпочтения)
+        context = {
+
+            'themes': Themes.objects.filter(is_private=False)[:20],
+
+            'cards': Cards.objects.filter(is_private=False)[:20]
+
+        }
+    return render(request, 'main/global_search.html', context)
+
+
+def global_search_ajax_json(request):
+    # TODO(Логика поиска)
+    themes = list(Themes.objects.filter(title__icontains=request.GET['query'])
+                  .filter(is_private=False)
+                  .values('pk', 'image', 'title'))
+
+    cards = list(Cards.objects.filter(
+        Q(title__icontains=request.GET['query']) |
+        Q(content__icontains=request.GET['query'])
+    ).filter(is_private=False)
+                 .distinct()
+                 .values('pk', 'image', 'title'))
+
+    return JsonResponse({'themes': themes, 'cards': cards}, safe=False)

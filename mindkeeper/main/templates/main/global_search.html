@@ -1,0 +1,63 @@
+{% extends "main/base.html" %}
+
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/global_search_style.css'%}">
+{% endblock %}
+{% block content %}
+    <div id="catalog">
+
+    </div>
+    <div>
+		<form action="" method='get'>
+			<input class="input_query" id="input_query" type="text" name=query>
+		</form>
+	</div>
+	<ul class="catalog_place">
+                {% for theme in themes %}
+                    <li class="wrapper">
+                    <a href="{% url 'main:open_theme' theme.pk %}">
+                    <div class="card">
+                        {% if theme.image %}
+                            <div class="photo">
+                                <img src="{{theme.image.url}}" alt="">
+                            </div>
+                        {% else %}
+                            <div class="photo">
+                                <img src="  " alt="">
+                            </div>
+                        {% endif %}
+                        <p class="object_title">{{theme.title}}</p>
+                    </div>
+                    </a>
+                    </li>
+                {% endfor %}
+                {% for card in cards %}
+                    <li class="wrapper">
+                        <a href="{% url 'main:open_card' card.pk %}">
+                        <div class="card">
+                            {% if card.image %}
+                                <div class="photo">
+                                    <img src="{{ card.image.url }}" alt="">
+                                </div>
+                            {% else %}
+                                <div class="photo">
+                                    <img src="#" alt="">
+                                </div>
+                            {% endif %}
+                            <p class="object_title">{{card.title}}</p>
+                        </div>
+                        </a>
+                    </li>
+                {% endfor %}
+    </ul>
+
+
+{% endblock %}
+{% block js %}
+
+	<script src="{% static 'js/script.js' %}"></script>
+	<script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
+
+{% endblock %}

@@ -1,5 +1,5 @@
 from django.db import models
-
+from PIL import Image
 from users.models import User
 
 
@@ -16,6 +16,14 @@ class Themes(models.Model):
 
     def __str__(self):
         return f"{self.title}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.image:
+            image = Image.open(self.image.path)
+            if image.height > 800 or image.width> 600:
+                image.thumbnail((800, 600))
+                image.save(self.image.path)
 
     @staticmethod
     def get_super_themes_by_user(user):
@@ -51,6 +59,14 @@ class Cards(models.Model):
 
     def __str__(self):
         return f"{self.theme}, {self.title}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.image:
+            image = Image.open(self.image.path)
+            if image.height > 800 or image.width> 600:
+                image.thumbnail((800, 600))
+                image.save(self.image.path)
 
     @staticmethod
     def get_super_cards_by_user(user):
