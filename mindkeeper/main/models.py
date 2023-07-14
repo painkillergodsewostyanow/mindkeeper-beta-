@@ -45,6 +45,10 @@ class Themes(models.Model):
     def views(self):
         return ThemeViews.objects.filter(theme=self).count()
 
+    @property
+    def likes(self):
+        return ThemeLikes.objects.filter(theme=self).count()
+
 
 class Cards(models.Model):
     # TODO(Возможность выдавать доступ определенным людям)
@@ -76,6 +80,7 @@ class Cards(models.Model):
     def get_super_cards_by_user(user):
         return Cards.objects.filter(user=user, theme__isnull=True)
 
+    @property
     def users_with_access(self):
         lst_users_with_access = []
         for row in CardAccess.objects.filter(card=self).values('user'):
@@ -85,6 +90,10 @@ class Cards(models.Model):
     @property
     def views(self):
         return CardViews.objects.filter(card=self).count()
+
+    @property
+    def likes(self):
+        return CardLikes.objects.filter(card=self).count()
 
 
 class CardAccess(models.Model):
@@ -120,21 +129,24 @@ class CardViews(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     card = models.ForeignKey(Cards, on_delete=models.CASCADE)
 
-# class ThemeLikes(models.Model):
-#     theme = models.ForeignKey(Themes, on_delete=models.CASCADE)
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#
-#
-# class CardLikes(models.Model):
-#     card = models.ForeignKey(Cards, on_delete=models.CASCADE)
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#
-#
-# class ThemeComment(models.Model):
-#     theme = models.ForeignKey(Themes, on_delete=models.CASCADE)
-#     content = models.TextField()
-#
-#
-# class CardComment(models.Model):
-#     card = models.ForeignKey(Cards, on_delete=models.CASCADE)
-#     content = models.TextField()
+
+class ThemeLikes(models.Model):
+    theme = models.ForeignKey(Themes, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class CardLikes(models.Model):
+    card = models.ForeignKey(Cards, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class ThemeComment(models.Model):
+    theme = models.ForeignKey(Themes, on_delete=models.CASCADE)
+    content = models.TextField()
+    sub_comment_to = models.ForeignKey('self', on_delete=models.CASCADE)
+
+
+class CardComment(models.Model):
+    card = models.ForeignKey(Cards, on_delete=models.CASCADE)
+    content = models.TextField()
+    sub_comment_to = models.ForeignKey('self', on_delete=models.CASCADE)

@@ -1,4 +1,3 @@
-
 function ajax_send(url, params) {
 	fetch(`${url}?${params}`, {
 		method: 'GET',
@@ -16,7 +15,7 @@ let input = document.getElementById('input_query');
 
 input.oninput = function(){
 
-	let url = 'http://127.0.0.1:8000/storage/global_search_json'
+	let url = 'http://127.0.0.1:8000/storage/local_search_ajax'
 	let params = `query=${input.value.toString()}`;
 	ajax_send(url, params)
 

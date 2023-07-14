@@ -26,6 +26,8 @@
             Темы:
         </div>
         {% endif %}
+        <div id="catalog"></div>
+
             <ul class="catalog_place">
                 {% for theme in themes %}
                     {% if theme.user == request.user %}
@@ -48,7 +50,9 @@
                                 </div>
                             {% endif %}
                             <p class="object_title">{{theme.title}}</p>
-                            <div>{{theme.views}}</div>
+                            <span class="views">{{theme.views}}</span>
+                            <span class="likes">{{theme.likes}}</span>
+                            <a href="{% url 'main:theme_like' theme.pk %}">like</a>
                         </div>
                         </a>
                         </li>
@@ -66,7 +70,9 @@
                                 </div>
                             {% endif %}
                             <p class="object_title">{{theme.title}}</p>
-                            <div class="views">{{theme.views}}</div>
+                            <span class="views">{{theme.views}}</span>
+                            <span class="likes">{{theme.likes}}</span>
+                            <a href="{% url 'main:theme_like' theme.pk %}">like</a>
                         </div>
                         </a>
                         </li>
@@ -126,7 +132,9 @@
                                 </div>
                             {% endif %}
                             <p class="object_title">{{card.title}}</p>
-                            <div class="views">{{card.views}}</div>
+                            <span class="views">{{card.views}}</span>
+                            <span class="likes">{{card.likes}}</span>
+                            <a href="{% url 'main:card_like' card.pk %}">like</a>
                         </div>
                         </a>
                     </li>
@@ -144,7 +152,9 @@
                                 </div>
                             {% endif %}
                             <p class="object_title">{{card.title}}</p>
-                            <div class="views">{{card.views}}</div>
+                            <span class="views">{{card.views}}</span>
+                            <span class="likes">{{card.likes}}</span>
+                            <a href="{% url 'main:card_like' card.pk %}">like</a>
                         </div>
                         </a>
                     </li>
@@ -178,5 +188,6 @@
         </ul>
     </div>
 
+<script src="{% static 'js/local_search_script.js' %}"></script>
 {% endif %}
 {% endblock %}

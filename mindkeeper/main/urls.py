@@ -21,7 +21,10 @@ urlpatterns = [
     path('storage/del_theme/<int:theme>', del_theme, name="del_theme"),
     path('storage/del_card/<int:card>', del_card, name="del_card"),
     path('storage/global_search', global_search, name="global_search"),
-    path('storage/global_search_json', global_search_ajax_json)
+    path('storage/global_search_json', global_search_ajax_json),
+    path('storage/local_search_ajax', local_search_ajax_json, name="local_search_ajax"),
+    path('storage/<int:theme_pk>/theme_like', theme_like, name="theme_like"),
+    path('storage/<int:card_pk>/card_like', card_like, name="card_like")
 ]
 
 

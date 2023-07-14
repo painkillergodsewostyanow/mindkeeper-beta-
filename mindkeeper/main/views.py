@@ -24,10 +24,11 @@ def storage(request):
     if request.GET.get('query', False):
         context = {
 
-            'themes': set(list(Themes.objects.filter(title__icontains=request.GET['query'], user=request.user)) +
-                          list(Themes.objects.filter(sub_theme_to__in=Themes.objects
-                                                     .filter(title__icontains=request.GET['query'],
-                                                             user=request.user)))),
+            'themes': set(list(Themes.objects.filter(title__icontains=request.GET['query'], user=request.user)) + list(
+                Themes.objects.filter(sub_theme_to__in=Themes.objects.filter(title__icontains=request.GET['query'],
+                                                                             user=request.user))) + list(
+                Themes.objects.filter(title__icontains=request.GET['query'], user=request.user,
+                                      sub_theme_to__isnull=True))),
 
             'cards': Cards.objects.filter(Q(title__icontains=request.GET['query']) |
                                           Q(content__icontains=request.GET['query']))
@@ -280,3 +281,44 @@ def global_search_ajax_json(request):
                  .values('pk', 'image', 'title'))
 
     return JsonResponse({'themes': themes, 'cards': cards}, safe=False)
+
+
+def local_search_ajax_json(request):
+    # TODO(Логика поиска)
+    themes = list(Themes.objects.filter(title__icontains=request.GET['query'])
+                  .values('pk', 'image', 'title'))
+
+    cards = list(Cards.objects.filter(
+        Q(title__icontains=request.GET['query']) |
+        Q(content__icontains=request.GET['query'])
+    )
+                 .distinct()
+                 .values('pk', 'image', 'title'))
+
+    return JsonResponse({'themes': themes, 'cards': cards}, safe=False)
+
+
+# TODO(AJAX)
+@login_required
+def card_like(request, card_pk):
+    card = Cards.objects.filter(pk=card_pk).first()
+    like_obj = CardLikes.objects.filter(user=request.user, card=card)
+    if like_obj.exists():
+        like_obj.delete()
+        return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+    CardLikes.objects.create(user=request.user, card=card)
+    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+
+# TODO(AJAX)
+@login_required
+def theme_like(request, theme_pk):
+    theme = Themes.objects.filter(pk=theme_pk).first()
+    like_obj = ThemeLikes.objects.filter(user=request.user, theme=theme)
+    if like_obj.exists():
+        like_obj.delete()
+        return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+    ThemeLikes.objects.create(user=request.user, theme=theme)
+    return HttpResponseRedirect(request.META['HTTP_REFERER'])
