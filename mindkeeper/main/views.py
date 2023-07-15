@@ -6,6 +6,7 @@ from django.shortcuts import render, HttpResponseRedirect
 from .forms import *
 from django.urls import reverse
 from .scripts import check_access
+from django.views.decorators.csrf import csrf_protect
 
 
 class IndexTemplateView(TemplateView):
@@ -91,7 +92,7 @@ def open_card(request, card):
     context = {'card': card}
     if card:
         if card.is_private:
-            if not check_access(request.user, to=card, users_with_access=card.users_with_access()):
+            if not check_access(request.user, to=card, users_with_access=card.users_with_access):
                 context = {
                     'message': 'у вас нет доступа, запросить: # TODO()'  # TODO()
                 }
@@ -305,10 +306,12 @@ def card_like(request, card_pk):
     like_obj = CardLikes.objects.filter(user=request.user, card=card)
     if like_obj.exists():
         like_obj.delete()
-        return HttpResponseRedirect(request.META['HTTP_REFERER'])
+        print('удаление')
+        return JsonResponse({'like': CardLikes.objects.filter(card=card_pk).count()}, safe=False)
 
+    print('создание')
     CardLikes.objects.create(user=request.user, card=card)
-    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+    return JsonResponse({'like': CardLikes.objects.filter(card=card_pk).count()}, safe=False)
 
 
 # TODO(AJAX)
@@ -318,7 +321,9 @@ def theme_like(request, theme_pk):
     like_obj = ThemeLikes.objects.filter(user=request.user, theme=theme)
     if like_obj.exists():
         like_obj.delete()
-        return HttpResponseRedirect(request.META['HTTP_REFERER'])
+        print('удаление')
+        return JsonResponse({'like': ThemeLikes.objects.filter(theme=theme_pk).count()}, safe=False)
 
+    print('создание')
     ThemeLikes.objects.create(user=request.user, theme=theme)
-    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+    return JsonResponse({'like': ThemeLikes.objects.filter(theme=theme_pk).count()}, safe=False)

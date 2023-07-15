@@ -8,11 +8,18 @@
 {% if message %}
     <h1>{{message}}</h1>
 {% else %}
+
     <div class="container">
 
         {% if father_theme %}
             <div class="father_theme">
                 {{father_theme.title}}
+            </div>
+            <div id="test_output">
+                {{father_theme.likes}}
+            </div>
+            <div id="like_theme_trigger"> like
+                <a href="{% url 'main:theme_like' father_theme.pk %}"></a>
             </div>
         {% else %}
         <div>
@@ -52,7 +59,6 @@
                             <p class="object_title">{{theme.title}}</p>
                             <span class="views">{{theme.views}}</span>
                             <span class="likes">{{theme.likes}}</span>
-                            <a href="{% url 'main:theme_like' theme.pk %}">like</a>
                         </div>
                         </a>
                         </li>
@@ -72,7 +78,6 @@
                             <p class="object_title">{{theme.title}}</p>
                             <span class="views">{{theme.views}}</span>
                             <span class="likes">{{theme.likes}}</span>
-                            <a href="{% url 'main:theme_like' theme.pk %}">like</a>
                         </div>
                         </a>
                         </li>
@@ -134,7 +139,6 @@
                             <p class="object_title">{{card.title}}</p>
                             <span class="views">{{card.views}}</span>
                             <span class="likes">{{card.likes}}</span>
-                            <a href="{% url 'main:card_like' card.pk %}">like</a>
                         </div>
                         </a>
                     </li>
@@ -154,7 +158,6 @@
                             <p class="object_title">{{card.title}}</p>
                             <span class="views">{{card.views}}</span>
                             <span class="likes">{{card.likes}}</span>
-                            <a href="{% url 'main:card_like' card.pk %}">like</a>
                         </div>
                         </a>
                     </li>
@@ -187,7 +190,10 @@
                 </li>
         </ul>
     </div>
-
-<script src="{% static 'js/local_search_script.js' %}"></script>
+{% endif %}
+{% if father_theme %}
+    <script src="{% static 'js/theme_like.js' %}"></script>
+{% else %}
+    <script src="{% static 'js/local_search_script.js' %}"></script>
 {% endif %}
 {% endblock %}

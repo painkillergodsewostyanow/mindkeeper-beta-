@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="{% static 'css/global_search_style.css'%}">
 {% endblock %}
 {% block content %}
+    <div id="test_output"></div>
     <div id="catalog">
 
     </div>
@@ -25,13 +26,12 @@
                             </div>
                         {% else %}
                             <div class="photo">
-                                <img src="  " alt="">
+                                <img src=" " alt="">
                             </div>
                         {% endif %}
                         <p class="object_title">{{theme.title}}</p>
-                        <div class="views">{{theme.views}}</div>
+                        <span class="views">{{theme.views}}</span>
                         <span class="likes">{{theme.likes}}</span>
-                        <a href="{% url 'main:theme_like' theme.pk %}">like</a>
                     </div>
                     </a>
                     </li>
@@ -52,7 +52,6 @@
                             <p class="object_title">{{card.title}}</p>
                             <span class="views">{{card.views}}</span>
                             <span class="likes">{{card.likes}}</span>
-                            <a href="{% url 'main:card_like' card.pk %}">like</a>
                         </div>
                         </a>
                     </li>
@@ -63,7 +62,8 @@
 {% endblock %}
 {% block js %}
 
-	<script src="{% static 'js/search_script.js' %}"></script>
+    <script src="{% static 'js/search_script.js' %}"></script>
+
 	<script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
 
 {% endblock %}
