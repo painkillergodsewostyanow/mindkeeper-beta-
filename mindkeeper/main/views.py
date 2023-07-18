@@ -5,7 +5,7 @@ from django.views.generic import TemplateView, UpdateView
 from django.shortcuts import render, HttpResponseRedirect
 from .forms import *
 from django.urls import reverse
-from .scripts import check_accessд
+from .scripts import check_access
 
 
 class IndexTemplateView(TemplateView):
