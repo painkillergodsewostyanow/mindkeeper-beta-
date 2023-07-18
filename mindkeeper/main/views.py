@@ -5,8 +5,7 @@ from django.views.generic import TemplateView, UpdateView
 from django.shortcuts import render, HttpResponseRedirect
 from .forms import *
 from django.urls import reverse
-from .scripts import check_access
-from django.views.decorators.csrf import csrf_protect
+from .scripts import check_accessд
 
 
 class IndexTemplateView(TemplateView):
@@ -16,6 +15,7 @@ class IndexTemplateView(TemplateView):
         context = super(IndexTemplateView, self).get_context_data()
         if self.request.user.is_authenticated:
             context['super_themes'] = Themes.get_super_themes_by_user(self.request.user)
+            context['super_cards'] = Cards.get_super_cards_by_user(self.request.user)
 
         return context
 
@@ -73,7 +73,7 @@ def open_theme(request, theme):
 
     if theme:
         if theme.is_private:
-            if not check_access(request.user, to=theme, users_with_access=theme.users_with_access()):
+            if not check_access(request.user, to=theme, users_with_access=theme.users_with_access):
                 context = {
                     'message': 'у вас нет доступа, запросить: # TODO()'  # TODO()
                 }
@@ -326,4 +326,49 @@ def theme_like(request, theme_pk):
 
     print('создание')
     ThemeLikes.objects.create(user=request.user, theme=theme)
-    return JsonResponse({'like': ThemeLikes.objects.filter(theme=theme_pk).count()}, safe=False)
+    return JsonResponse({'like': ThemeLikes.objects.filter(theme    =theme_pk).count()}, safe=False)
+
+
+# TODO(AJAX)
+@login_required
+def add_comment_to_theme(request):
+    theme = Themes.objects.get(pk=request.POST['theme'])
+    content = request.POST['content'] if request.POST['content'] else None
+    if not content:
+        print('Коментарий путсым быть не может')
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
+
+    ThemeComments.objects.create(user=request.user, content=content, theme=theme)
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
+
+
+@login_required
+def del_comment_from_theme(request, comment_pk):
+    comment = ThemeComments.objects.filter(pk=comment_pk).first()
+    if comment.user == request.user:
+        comment.delete()
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
+    print('Нет доступа')
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
+
+
+@login_required
+def add_comment_to_card(request):
+    card = Cards.objects.get(pk=request.POST['card'])
+    content = request.POST['content'] if request.POST['content'] else None
+    if not content:
+        print('Коментарий путсым быть не может')
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
+
+    CardComments.objects.create(user=request.user, content=content, card=card)
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
+
+
+@login_required
+def del_comment_from_card(request, comment_pk):
+    comment = CardComments.objects.filter(pk=comment_pk).first()
+    if comment.user == request.user:
+        comment.delete()
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
+    print('Нет доступа')
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))

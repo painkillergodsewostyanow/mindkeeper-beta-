@@ -10,7 +10,7 @@
                 <div class="storage__link"><a href="{% url 'main:storage' %}">ВАША КАРТОТЕКА</a></div>
                 {% for super_theme in super_themes %}
                     <div class="storage-preview__super_theme">
-                        <a href="{% url 'main:open_theme' super_theme.pk %}">{{super_theme}}</a>
+                        <a href="{% url 'main:open_theme' super_theme.pk %}">{{super_theme}}..</a>
                         {% if super_theme.get_sub_themes %}
                             {% for sub_theme in super_theme.get_sub_themes %}
                                 <div class="storage-preview__super_theme__item">
@@ -26,6 +26,11 @@
                             {% endfor %}
                         {% endif %}
                     </div>
+                {% endfor %}
+                {% for card in super_cards %}
+                        <div class="storage-preview__super_theme">
+                            <a href="{% url 'main:open_card' card.pk %}">{{card.title}}</a>
+                        </div>
                 {% endfor %}
             {% else %}
                 <div class="storage__link"><a href="{% url 'main:add_theme_form' %}">СОЗДАТЬ ТЕМУ</a></div>

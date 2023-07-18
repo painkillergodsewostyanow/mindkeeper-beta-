@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from .views import *
 
 
@@ -24,7 +24,11 @@ urlpatterns = [
     path('storage/global_search_json', global_search_ajax_json),
     path('storage/local_search_ajax', local_search_ajax_json, name="local_search_ajax"),
     path('storage/<int:theme_pk>/theme_like', theme_like, name="theme_like"),
-    path('storage/<int:card_pk>/card_like', card_like, name="card_like")
+    path('storage/<int:card_pk>/card_like', card_like, name="card_like"),
+    path('storage/add_comment_to_theme', add_comment_to_theme, name="add_comment_to_theme"),
+    path('storage/add_comment_to_card', add_comment_to_card, name="add_comment_to_card"),
+    path('storage/<int:comment_pk>/del_comment_from_card', del_comment_from_card, name='del_comment_from_card'),
+    path('storage/<int:comment_pk>/del_comment_from_theme', del_comment_from_theme, name='del_comment_from_theme'),
 ]
 
 

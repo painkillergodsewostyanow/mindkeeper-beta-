@@ -8,7 +8,7 @@
         {{card.title}}
     </div>
     <div>
-        {{card.content}}
+        {{card.content|safe}}
     </div>
     <div>
         {% if card.image %}
@@ -19,6 +19,27 @@
         <div id="test_output">{{card.likes}}</div>
         <div id="like_card_trigger"> like
             <a href="{% url 'main:card_like' card.pk %}"></a>
+        </div>
+    </div>
+    <div>
+        <span>Отсавить коментарий</span>
+        <form action="{% url 'main:add_comment_to_card' %}" method="post">
+            {% csrf_token %}
+            <textarea name="content"></textarea>
+            <input type="hidden" name="card" value="{{card.pk  }}">
+            <button type="submit">Оставить</button>
+        </form>
+        <div>
+            Комментарии:
+            {% for comment in card.comments %}
+            <div>
+                {% if comment.user == request.user %}
+                <a href="{% url 'main:del_comment_from_card' comment.pk %}">УДАЛИТЬ</a>
+                <a href="">РЕДАКТИРОВАТЬ</a>
+                {% endif %}
+                {{comment.content}}
+            </div>
+            {% endfor %}
         </div>
     </div>
 <script src="{% static 'js/card_like.js' %}"></script>

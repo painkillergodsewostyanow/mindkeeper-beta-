@@ -21,6 +21,27 @@
             <div id="like_theme_trigger"> like
                 <a href="{% url 'main:theme_like' father_theme.pk %}"></a>
             </div>
+            <div>
+                <span>Отсавить коментарий</span>
+                <form action="{% url 'main:add_comment_to_theme' %}" method="post">
+                    {% csrf_token %}
+                    <textarea name="content"></textarea>
+                    <input type="hidden" name="theme" value="{{father_theme.pk  }}">
+                    <button type="submit">Оставить</button>
+                </form>
+                <div>
+                    Комментарии:
+                    {% for comment in father_theme.comments %}
+                        <div>
+                            {% if comment.user == request.user %}
+                                <a href="{% url 'main:del_comment_from_theme' comment.pk %}">УДАЛИТЬ</a>
+                                <a href="">РЕДАКТИРОВАТЬ</a>
+                            {% endif %}
+                            {{comment.content}}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
         {% else %}
         <div>
 		<form action="" method='get'>
@@ -163,7 +184,6 @@
                     </li>
                 {% endif %}
             {% endfor %}
-
                 <li class="wrapper">
                         {% if father_theme %}
                             {% if request.user == father_theme.user %}
