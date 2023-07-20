@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q, F
 from django.http import JsonResponse
 from django.views.generic import TemplateView, UpdateView
-from django.shortcuts import render, HttpResponseRedirect
+from django.shortcuts import render, HttpResponseRedirect, redirect
 from .forms import *
 from django.urls import reverse
 from .scripts import check_access
@@ -12,7 +12,7 @@ class IndexTemplateView(TemplateView):
     template_name = 'main/index.html'
 
     def get_context_data(self, **kwargs):
-        context = super(IndexTemplateView, self).get_context_data()
+        context = super(IndexTemplateView, self).get_context_data(**kwargs)
         if self.request.user.is_authenticated:
             context['super_themes'] = Themes.get_super_themes_by_user(self.request.user)
             context['super_cards'] = Cards.get_super_cards_by_user(self.request.user)
@@ -113,12 +113,12 @@ def add_card_form(request, theme=None):
 
         context = {'form': form, 'theme': theme.pk,
                    'action': 'Добавить карточку',
-                   'HTTP_REFERER': request.META.get('HTTP_REFERER', '')}
+                    }
 
     else:
         context = {'form': form,
                    'action': 'Добавить карточку',
-                   'HTTP_REFERER': request.META.get('HTTP_REFERER', '')}
+                   }
 
     return render(request, "main/add_card.html", context)
 
@@ -134,12 +134,12 @@ def add_theme_form(request, theme=None):
 
         context = {'form': form, 'theme': theme.pk,
                    'action': 'Добавить тему',
-                   'HTTP_REFERER': request.META.get('HTTP_REFERER', '')}
+                   }
 
     else:
         context = {'form': form,
                    'action': 'Добавить тему',
-                   'HTTP_REFERER': request.META.get('HTTP_REFERER', '')}
+                   }
 
     return render(request, "main/add_theme.html", context)
 
@@ -150,7 +150,7 @@ def add_card(request):
     theme = Themes.objects.get(pk=request.POST['theme']) if request.POST['theme'] else None
     image = request.FILES.get('image', None)
 
-    Cards.objects.create(
+    card = Cards.objects.create(
         user=request.user,
         image=image,
         is_private=is_private,
@@ -158,9 +158,7 @@ def add_card(request):
         title=request.POST['title'], content=request.POST['content']
     )
 
-    return HttpResponseRedirect(
-        request.POST['HTTP_REFERER'] if request.POST['HTTP_REFERER'] else reverse('main:storage')
-    )
+    return redirect(reverse('main:open_card', kwargs={'card': card.pk}))
 
 
 @login_required
@@ -169,7 +167,7 @@ def add_theme(request):
     theme = Themes.objects.get(pk=request.POST['theme']) if request.POST['theme'] else None
     image = request.FILES.get('image', None)
 
-    Themes.objects.create(
+    theme = Themes.objects.create(
         image=image,
         is_private=is_private,
         user=request.user,
@@ -177,9 +175,7 @@ def add_theme(request):
         sub_theme_to=theme
     )
 
-    return HttpResponseRedirect(
-        request.POST['HTTP_REFERER'] if request.POST['HTTP_REFERER'] else reverse('main:storage')
-    )
+    return redirect(reverse('main:open_theme', kwargs={'theme': theme.pk}))
 
 
 class EditCard(UpdateView):
@@ -326,7 +322,7 @@ def theme_like(request, theme_pk):
 
     print('создание')
     ThemeLikes.objects.create(user=request.user, theme=theme)
-    return JsonResponse({'like': ThemeLikes.objects.filter(theme    =theme_pk).count()}, safe=False)
+    return JsonResponse({'like': ThemeLikes.objects.filter(theme=theme_pk).count()}, safe=False)
 
 
 # TODO(AJAX)

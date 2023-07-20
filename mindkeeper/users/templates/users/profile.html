@@ -1,0 +1,20 @@
+{% extends 'users/base.html' %}
+
+{% block content %}
+<form action="" method="post">
+
+    {% csrf_token %}
+    {{form.as_p}}
+
+</form>
+<div>
+    <div>ПОЛУЧЕННО:</div>
+    Лайков: {{total_likes_received}}
+    Просмотров: {{total_views_received}}
+    Комментариев: {{total_comments_received}}
+    <div>ПОСТАВЛЕННО:</div>
+    Лайков: {{total_likes_verb}}
+    Просмотров: {{total_views_verb}}
+    Комментариев: {{total_comments_verb}}
+</div>
+{% endblock %}

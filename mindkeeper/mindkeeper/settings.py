@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django_cleanup.apps.CleanupConfig'
 ]
 
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -147,3 +148,6 @@ MEDIA_URL = '/media/'
 AUTH_USER_MODEL = 'users.User'
 LOGIN_URL = reverse_lazy('users:login')
 LOGIN_REDIRECT_URL = reverse_lazy('users:login')
+
+#SUMMERNOTE
+SUMMERNOTE_CONFIG = {'width': '100%', 'height': '400px'}

@@ -1,7 +1,3 @@
-from django.http import HttpResponseRedirect
-from django.urls import reverse
-
-
 def check_access(user, to=None,  users_with_access=None):
     if to:
         if to.user != user:
@@ -12,3 +8,4 @@ def check_access(user, to=None,  users_with_access=None):
             return False
 
     return True
+

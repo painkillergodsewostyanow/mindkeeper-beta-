@@ -11,11 +11,6 @@
         {{card.content|safe}}
     </div>
     <div>
-        {% if card.image %}
-            <img src="{{card.image.url}}" alt="">
-        {% endif %}
-    </div>
-    <div>
         <div id="test_output">{{card.likes}}</div>
         <div id="like_card_trigger"> like
             <a href="{% url 'main:card_like' card.pk %}"></a>

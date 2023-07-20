@@ -1,0 +1,74 @@
+.summernote-div{
+    margin-top:2vw;
+    text-align: center;
+}
+#id_content_iframe{
+
+    width:80vw;
+
+}
+
+.title{
+
+    text-align: center;
+
+
+}
+.title input {
+
+    padding-top: 1.2vw;
+    padding-bottom: 1.2vw;
+    padding-left: 8vw;
+    padding-right: 8vw;
+    font-size: 2vw;
+    text-align: center;
+
+}
+
+#upload-image{
+
+     width: 20vw;
+     user-select: none;
+
+}
+
+.upload-container label {
+
+    font-weight: bold;
+
+}
+
+.upload-container label:hover {
+
+     cursor: pointer;
+     text-decoration: underline;
+
+}
+
+.upload-container div {
+     position: relative;
+     z-index: 10;
+}
+
+.upload-container input[type=file] {
+     width: 0.1px;
+     height: 0.1px;
+     opacity: 0;
+     position: absolute;
+     z-index: -10;
+}
+
+
+.flex_wrapp{
+
+    padding: 0 10vw 0 10vw ;
+    align-items: center;
+    justify-content: center  ;
+    display: flex;
+
+}
+.flex_wrapp:nth-child(1) {
+
+    margin-left: 5vw;
+
+}

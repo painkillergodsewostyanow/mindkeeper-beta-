@@ -14,7 +14,7 @@
 		<div class=title><a href="{% url 'main:index' %}">MINDKEPEER</a></div>
 		<div class="nav">
 			{% if request.user.is_authenticated %}
-				<div class="nav__item"><a href="#">профиль</a></div>
+				<div class="nav__item"><a href="{% url 'users:profile' request.user.pk %}">профиль</a></div>
 				<div class="nav__item"><a href="{% url 'users:logout' %}">выйти</a></div>
 				<div class="nav__item"><a href="{% url 'main:storage' %}">моя картотека</a></div>
 				<div class="nav__item"><a href="{% url 'main:global_search' %}">глобальная картотека</a></div>

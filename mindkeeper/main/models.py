@@ -4,8 +4,39 @@ from users.models import User
 from django_cleanup import cleanup
 
 
+class CountableMixin:
+    @classmethod
+    def count_received(cls, countable, user):
+        if issubclass(cls, Themes):
+            return CountStrategy.count_received_theme(Themes, countable, user)
+        if issubclass(cls, Cards):
+            return CountStrategy.count_received_card(Cards, countable, user)
+
+    @staticmethod
+    def count_placed(countable, user):
+        return countable.objects.filter(user=user).count()
+
+
+class CountStrategy:
+    @staticmethod
+    def count_received_theme(a, countable, user):
+        total = 0
+        for obj in a.objects.filter(user=user):
+            total += countable.objects.filter(theme=obj).count()
+
+        return total
+
+    @staticmethod
+    def count_received_card(a, countable, user):
+        total = 0
+        for obj in a.objects.filter(user=user):
+            total += countable.objects.filter(card=obj).count()
+
+        return total
+
+
 @cleanup.select
-class Themes(models.Model):
+class Themes(models.Model, CountableMixin):
     image = models.ImageField(upload_to="themes_image", blank=True)
     is_private = models.BooleanField(default=False)
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Автор")
@@ -58,9 +89,33 @@ class Themes(models.Model):
     def comments(self):
         return ThemeComments.objects.filter(theme=self)
 
+    @classmethod
+    def count_user_s_likes_received(cls, user):
+        return cls.count_received(ThemeLikes, user)
+
+    @classmethod
+    def count_user_s_views_received(cls, user):
+        return cls.count_received(ThemeViews, user)
+
+    @classmethod
+    def count_user_s_comment_received(cls, user):
+        return cls.count_received(ThemeComments, user)
+
+    @classmethod
+    def count_user_s_likes_placed(cls, user):
+        return cls.count_placed(ThemeLikes, user)
+
+    @classmethod
+    def count_user_s_views_placed(cls, user):
+        return cls.count_placed(ThemeViews, user)
+
+    @classmethod
+    def count_user_s_comment_placed(cls, user):
+        return cls.count_placed(ThemeComments, user)
+
 
 @cleanup.select
-class Cards(models.Model):
+class Cards(models.Model, CountableMixin):
     # TODO(Возможность выдавать доступ определенным людям)
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Автор")
     image = models.ImageField(upload_to="card_image", blank=True)
@@ -108,6 +163,30 @@ class Cards(models.Model):
     @property
     def comments(self):
         return CardComments.objects.filter(card=self)
+
+    @classmethod
+    def count_user_s_likes_received(cls, user):
+        return cls.count_received(CardLikes, user)
+
+    @classmethod
+    def count_user_s_views_received(cls, user):
+        return cls.count_received(CardViews, user)
+
+    @classmethod
+    def count_user_s_comment_received(cls, user):
+        return cls.count_received(CardComments, user)
+
+    @classmethod
+    def count_user_s_likes_placed(cls, user):
+        return cls.count_placed(CardLikes, user)
+
+    @classmethod
+    def count_user_s_views_placed(cls, user):
+        return cls.count_placed(CardViews, user)
+
+    @classmethod
+    def count_user_s_comment_placed(cls, user):
+        return cls.count_placed(CardComments, user)
 
 
 class CardAccess(models.Model):
@@ -160,9 +239,15 @@ class ThemeComments(models.Model):
     content = models.TextField()
     sub_comment_to = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True,)
 
+    def get_sub_comment(self):
+        return ThemeComments.objects.filter(sub_comment_to=self)
+
 
 class CardComments(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     card = models.ForeignKey(Cards, on_delete=models.CASCADE)
     content = models.TextField()
     sub_comment_to = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True,)
+
+    def get_sub_comment(self):
+        return CardComments.objects.filter(sub_comment_to=self)
