@@ -4,6 +4,20 @@ from users.models import User
 from django_cleanup import cleanup
 
 
+class ResizeOnSaveMixin:
+    max_height = 800
+    max_weight = 600
+    resize_fields = () # TODO()
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.image:
+            image = Image.open(self.image.path)
+            if image.height > self.max_height or image.width > self.max_weight:
+                image.thumbnail((self.max_height, self.max_weight))
+                image.save(self.image.path)
+
+
 class CountableMixin:
     @classmethod
     def count_received(cls, countable, user):
@@ -36,7 +50,7 @@ class CountStrategy:
 
 
 @cleanup.select
-class Themes(models.Model, CountableMixin):
+class Themes(ResizeOnSaveMixin, CountableMixin, models.Model):
     image = models.ImageField(upload_to="themes_image", blank=True)
     is_private = models.BooleanField(default=False)
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Автор")
@@ -49,14 +63,6 @@ class Themes(models.Model, CountableMixin):
 
     def __str__(self):
         return f"{self.title}"
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        if self.image:
-            image = Image.open(self.image.path)
-            if image.height > 800 or image.width> 600:
-                image.thumbnail((800, 600))
-                image.save(self.image.path)
 
     @staticmethod
     def get_super_themes_by_user(user):
@@ -83,7 +89,7 @@ class Themes(models.Model, CountableMixin):
 
     @property
     def likes(self):
-        return ThemeLikes.objects.filter(theme=self).count()
+        return ThemeLikes.objects.filter(obj=self).count()
 
     @property
     def comments(self):
@@ -115,8 +121,7 @@ class Themes(models.Model, CountableMixin):
 
 
 @cleanup.select
-class Cards(models.Model, CountableMixin):
-    # TODO(Возможность выдавать доступ определенным людям)
+class Cards(ResizeOnSaveMixin, CountableMixin, models.Model):
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Автор")
     image = models.ImageField(upload_to="card_image", blank=True)
     is_private = models.BooleanField(default=False)
@@ -132,14 +137,6 @@ class Cards(models.Model, CountableMixin):
 
     def __str__(self):
         return f"{self.theme}, {self.title}"
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        if self.image:
-            image = Image.open(self.image.path)
-            if image.height > 800 or image.width> 600:
-                image.thumbnail((800, 600))
-                image.save(self.image.path)
 
     @staticmethod
     def get_super_cards_by_user(user):
@@ -158,7 +155,7 @@ class Cards(models.Model, CountableMixin):
 
     @property
     def likes(self):
-        return CardLikes.objects.filter(card=self).count()
+        return CardLikes.objects.filter(obj=self).count()
 
     @property
     def comments(self):
@@ -224,30 +221,28 @@ class CardViews(models.Model):
 
 
 class ThemeLikes(models.Model):
-    theme = models.ForeignKey(Themes, on_delete=models.CASCADE)
+    obj = models.ForeignKey(Themes, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 
 class CardLikes(models.Model):
-    card = models.ForeignKey(Cards, on_delete=models.CASCADE)
+    obj = models.ForeignKey(Cards, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 
-class ThemeComments(models.Model):
+class Comments(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    time_created = models.TimeField(auto_now_add=True)
+    sub_comment_to = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True,)
+
+    def get_sub_comment(self):
+        return self.objects.filter(sub_comment_to=self)
+
+
+class ThemeComments(Comments):
     theme = models.ForeignKey(Themes, on_delete=models.CASCADE)
-    content = models.TextField()
-    sub_comment_to = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True,)
-
-    def get_sub_comment(self):
-        return ThemeComments.objects.filter(sub_comment_to=self)
 
 
-class CardComments(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+class CardComments(Comments):
     card = models.ForeignKey(Cards, on_delete=models.CASCADE)
-    content = models.TextField()
-    sub_comment_to = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True,)
-
-    def get_sub_comment(self):
-        return CardComments.objects.filter(sub_comment_to=self)

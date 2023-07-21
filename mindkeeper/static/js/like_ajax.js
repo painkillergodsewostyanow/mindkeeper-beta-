@@ -31,7 +31,7 @@ function ajax_send(url, params) {
 };
 
 
-let like_trigger = document.getElementById('like_theme_trigger');
+let like_trigger = document.getElementById('like_trigger');
 
 like_trigger.onclick = function(){
 
@@ -41,5 +41,5 @@ like_trigger.onclick = function(){
 };
 
 function render(data){
-    document.getElementById('test_output').innerHTML = JSON.stringify(data.like)
+    document.getElementById('likes').innerHTML = JSON.stringify(data.like)
 }

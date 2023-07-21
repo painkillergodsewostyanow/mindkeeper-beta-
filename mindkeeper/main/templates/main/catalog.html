@@ -15,11 +15,11 @@
             <div class="father_theme">
                 {{father_theme.title}}
             </div>
-            <div id="test_output">
+            <div id="likes">
                 {{father_theme.likes}}
             </div>
-            <div id="like_theme_trigger"> like
-                <a href="{% url 'main:theme_like' father_theme.pk %}"></a>
+            <div id="like_trigger"> like
+                <a href="{% url 'main:like_theme' father_theme.pk %}"></a>
             </div>
         {% else %}
         <div>
@@ -192,10 +192,10 @@
 {% if father_theme %}
 <div>
     <span>Отсавить коментарий</span>
-                <form action="{% url 'main:add_comment_to_theme' %}" method="post">
+                <form action="{% url 'main:add_comment' %}" method="post">
                     {% csrf_token %}
                     <textarea name="content"></textarea>
-                    <input type="hidden" name="theme" value="{{father_theme.pk  }}">
+                    <input type="hidden" name="theme" value="{{father_theme.pk}}">
                     <button type="submit">Оставить</button>
                 </form>
                 <div>
@@ -205,6 +205,7 @@
                             {% if comment.user == request.user %}
                                 <a href="{% url 'main:del_comment_from_theme' comment.pk %}">УДАЛИТЬ</a>
                                 <a href="">РЕДАКТИРОВАТЬ</a>
+                                <a href="">ОТВЕТИТЬ</a>
                             {% endif %}
                             {{comment.content}}
                         </div>
@@ -214,7 +215,7 @@
 {% endif %}
 {% endif %}
 {% if father_theme %}
-    <script src="{% static 'js/theme_like.js' %}"></script>
+    <script src="{% static 'js/like_ajax.js' %}"></script>
 {% else %}
     <script src="{% static 'js/local_search_script.js' %}"></script>
 {% endif %}

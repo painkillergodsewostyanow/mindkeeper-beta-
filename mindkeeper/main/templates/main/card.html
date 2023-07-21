@@ -11,17 +11,17 @@
         {{card.content|safe}}
     </div>
     <div>
-        <div id="test_output">{{card.likes}}</div>
-        <div id="like_card_trigger"> like
-            <a href="{% url 'main:card_like' card.pk %}"></a>
+        <div id="likes">{{card.likes}}</div>
+        <div id="like_trigger"> like
+            <a href="{% url 'main:like_card' card.pk %}"></a>
         </div>
     </div>
     <div>
         <span>Отсавить коментарий</span>
-        <form action="{% url 'main:add_comment_to_card' %}" method="post">
+        <form action="{% url 'main:add_comment' %}" method="post">
             {% csrf_token %}
             <textarea name="content"></textarea>
-            <input type="hidden" name="card" value="{{card.pk  }}">
+            <input type="hidden" name="card" value="{{card.pk}}">
             <button type="submit">Оставить</button>
         </form>
         <div>
@@ -37,6 +37,6 @@
             {% endfor %}
         </div>
     </div>
-<script src="{% static 'js/card_like.js' %}"></script>
+<script src="{% static 'js/like_ajax.js' %}"></script>
 {% endblock %}
 
