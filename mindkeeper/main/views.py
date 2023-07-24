@@ -52,8 +52,8 @@ def open_theme(request, theme):
     father_theme = theme
     theme = Themes.objects.filter(pk=theme).first()
     if request.user.is_authenticated:
-        if not ThemeViews.objects.filter(theme=theme, user=request.user).first():
-            ThemeViews.objects.create(theme=theme, user=request.user)
+        if not ThemeViews.objects.filter(obj=theme, user=request.user).first():
+            ThemeViews.objects.create(obj=theme, user=request.user)
 
     context = {
         'father_theme': Themes.objects.filter(pk=father_theme).first(),
@@ -76,8 +76,8 @@ def open_theme(request, theme):
 def open_card(request, card):
     card = Cards.objects.filter(pk=card).first()
     if request.user.is_authenticated:
-        if not CardViews.objects.filter(card=card, user=request.user).first():
-            CardViews.objects.create(card=card, user=request.user)
+        if not CardViews.objects.filter(obj=card, user=request.user).first():
+            CardViews.objects.create(obj=card, user=request.user)
 
     context = {'card': card}
     if card:
@@ -148,6 +148,8 @@ def add_card(request):
         title=request.POST['title'], content=request.POST['content']
     )
 
+    # TODO(Уведомить подписчиков)
+
     return redirect(reverse('main:open_card', kwargs={'card': card.pk}))
 
 
@@ -164,6 +166,8 @@ def add_theme(request):
         title=request.POST['title'],
         sub_theme_to=theme
     )
+
+    # TODO(Уведомить подписчиков)
 
     return redirect(reverse('main:open_theme', kwargs={'theme': theme.pk}))
 
@@ -253,22 +257,40 @@ def like_theme(request, theme_pk):
     return like_generic(request, obj, ThemeLikes)
 
 
-# TODO(add_comment_generic)
-def add_comment(request):
-    theme = Themes.objects.get(pk=request.POST['theme']) if request.POST.get('theme') else None
-    card = Cards.objects.get(pk=request.POST['card']) if request.POST.get('card') else None
-    content = request.POST['content'] if request.POST['content'] else None
+@login_required
+def add_comment_generic(request, model, content, obj, sub_comment_to=None):
     if not content:
         print('Коментарий путсым быть не может')
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
 
-    if theme:
-        ThemeComments.objects.create(user=request.user, content=content, theme=theme)
-
-    if card:
-        CardComments.objects.create(user=request.user, content=content, card=card)
-
+    model.objects.create(user=request.user, content=content, obj=obj, sub_comment_to=sub_comment_to)
     return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
+
+
+def add_comment_to_theme(request):
+    theme = Themes.objects.get(pk=request.POST['theme']) if request.POST.get('theme') else None
+    content = request.POST['content'] if request.POST['content'] else None
+    return add_comment_generic(request, ThemeComments, content, theme)
+
+
+def add_comment_to_card(request):
+    card = Cards.objects.get(pk=request.POST['card']) if request.POST.get('card') else None
+    content = request.POST['content'] if request.POST['content'] else None
+    return add_comment_generic(request, CardComments, content, card)
+
+
+def add_comment_to_card_comment(request):
+    card = Cards.objects.get(pk=request.POST['obj']) if request.POST.get('obj') else None
+    comment = CardComments.objects.get(pk=request.POST['comment']) if request.POST['comment'] else None
+    content = request.POST['content'] if request.POST['content'] else None
+    return add_comment_generic(request, CardComments, content, card, comment)
+
+
+def add_comment_to_theme_comment(request):
+    theme = Themes.objects.get(pk=request.POST['obj']) if request.POST.get('obj') else None
+    comment = ThemeComments.objects.get(pk=request.POST['comment']) if request.POST['comment'] else None
+    content = request.POST['content'] if request.POST['content'] else None
+    return add_comment_generic(request, ThemeComments, content, theme, comment)
 
 
 # SEARCH

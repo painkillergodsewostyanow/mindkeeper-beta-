@@ -1,6 +1,7 @@
 {% extends "main/base.html" %}
 {% load static %}
 {% block content %}
+    <a id="url" href="{% url 'main:add_comment_to_card_comment' %}"></a>
     <div>
         {{message}}
     </div>
@@ -18,7 +19,7 @@
     </div>
     <div>
         <span>Отсавить коментарий</span>
-        <form action="{% url 'main:add_comment' %}" method="post">
+        <form id="add_comment" action="{% url 'main:add_comment_to_card' %}" method="post">
             {% csrf_token %}
             <textarea name="content"></textarea>
             <input type="hidden" name="card" value="{{card.pk}}">
@@ -27,16 +28,23 @@
         <div>
             Комментарии:
             {% for comment in card.comments %}
-            <div>
-                {% if comment.user == request.user %}
-                <a href="{% url 'main:del_comment_from_card' comment.pk %}">УДАЛИТЬ</a>
-                <a href="">РЕДАКТИРОВАТЬ</a>
-                {% endif %}
-                {{comment.content}}
-            </div>
+                <div id="comment">
+                    {% if comment.user == request.user %}
+                    <a href="{% url 'main:del_comment_from_card' comment.pk %}">УДАЛИТЬ</a>
+                    <a href="">РЕДАКТИРОВАТЬ</a>
+                    {% endif %}
+                    {{comment.content}}
+                    <div id="answer_trigger">
+                        <input type="hidden" name="comment_pk" value="{{comment.pk}}" >
+                        Ответить
+                    </div>
+                    <div id="answer_block"></div>
+                    {{comment.get_sub_comments}}
+                </div>
             {% endfor %}
         </div>
     </div>
 <script src="{% static 'js/like_ajax.js' %}"></script>
+<script src="{% static 'js/comments.js' %}"></script>
 {% endblock %}
 

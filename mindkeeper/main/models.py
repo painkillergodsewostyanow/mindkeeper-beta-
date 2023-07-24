@@ -36,7 +36,7 @@ class CountStrategy:
     def count_received_theme(a, countable, user):
         total = 0
         for obj in a.objects.filter(user=user):
-            total += countable.objects.filter(theme=obj).count()
+            total += countable.objects.filter(obj=obj).count()
 
         return total
 
@@ -44,7 +44,7 @@ class CountStrategy:
     def count_received_card(a, countable, user):
         total = 0
         for obj in a.objects.filter(user=user):
-            total += countable.objects.filter(card=obj).count()
+            total += countable.objects.filter(obj=obj).count()
 
         return total
 
@@ -85,7 +85,7 @@ class Themes(ResizeOnSaveMixin, CountableMixin, models.Model):
 
     @property
     def views(self):
-        return ThemeViews.objects.filter(theme=self).count()
+        return ThemeViews.objects.filter(obj=self).count()
 
     @property
     def likes(self):
@@ -93,7 +93,7 @@ class Themes(ResizeOnSaveMixin, CountableMixin, models.Model):
 
     @property
     def comments(self):
-        return ThemeComments.objects.filter(theme=self)
+        return ThemeComments.objects.filter(obj=self, sub_comment_to__isnull=True)
 
     @classmethod
     def count_user_s_likes_received(cls, user):
@@ -151,7 +151,7 @@ class Cards(ResizeOnSaveMixin, CountableMixin, models.Model):
 
     @property
     def views(self):
-        return CardViews.objects.filter(card=self).count()
+        return CardViews.objects.filter(obj =self).count()
 
     @property
     def likes(self):
@@ -159,7 +159,7 @@ class Cards(ResizeOnSaveMixin, CountableMixin, models.Model):
 
     @property
     def comments(self):
-        return CardComments.objects.filter(card=self)
+        return CardComments.objects.filter(obj=self, sub_comment_to__isnull=True)
 
     @classmethod
     def count_user_s_likes_received(cls, user):
@@ -212,12 +212,12 @@ class ThemeAccess(models.Model):
 
 class ThemeViews(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    theme = models.ForeignKey(Themes, on_delete=models.CASCADE)
+    obj = models.ForeignKey(Themes, on_delete=models.CASCADE)
 
 
 class CardViews(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    card = models.ForeignKey(Cards, on_delete=models.CASCADE)
+    obj = models.ForeignKey(Cards, on_delete=models.CASCADE)
 
 
 class ThemeLikes(models.Model):
@@ -236,13 +236,27 @@ class Comments(models.Model):
     time_created = models.TimeField(auto_now_add=True)
     sub_comment_to = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True,)
 
-    def get_sub_comment(self):
-        return self.objects.filter(sub_comment_to=self)
-
 
 class ThemeComments(Comments):
-    theme = models.ForeignKey(Themes, on_delete=models.CASCADE)
+    obj = models.ForeignKey(Themes, on_delete=models.CASCADE)
+
+    @property
+    def get_sub_comments(self):
+        return ThemeComments.objects.filter(sub_comment_to=self)
 
 
 class CardComments(Comments):
-    card = models.ForeignKey(Cards, on_delete=models.CASCADE)
+    obj = models.ForeignKey(Cards, on_delete=models.CASCADE)
+
+    @property
+    def get_sub_comments(self):
+        return CardComments.objects.filter(sub_comment_to=self)
+
+
+# class Notifications(models.Model):
+#     subscriber = models.ForeignKey(User, on_delete=models.CASCADE)
+#     is_checked = models.BooleanField(default=False)
+#
+#
+# class CardNotifications(Notifications):
+#     obj = models.ForeignKey(Cards, on_delete=models.CASCADE)

@@ -1,20 +1,29 @@
-{% extends 'users/base.html' %}
-
+{% extends 'main/base.html' %}
 {% block content %}
-<form action="" method="post">
-
-    {% csrf_token %}
-    {{form.as_p}}
-
-</form>
-<div>
-    <div>ПОЛУЧЕННО:</div>
-    Лайков: {{total_likes_received}}
-    Просмотров: {{total_views_received}}
-    Комментариев: {{total_comments_received}}
-    <div>ПОСТАВЛЕННО:</div>
-    Лайков: {{total_likes_verb}}
-    Просмотров: {{total_views_verb}}
-    Комментариев: {{total_comments_verb}}
-</div>
+    {% if object.image %}
+        <img src="{{object.image.url}}" alt="">
+    {% else %}
+        <img src="" alt="НЕТУ">
+    {% endif %}
+    <div>
+        {{object.username}}
+    </div>
+    <div>
+        {{object.email}}
+    </div>
+    <div>
+        <div>ПОЛУЧЕННО:</div>
+        Лайков: {{total_likes_received}}
+        Просмотров: {{total_views_received}}
+        Комментариев: {{total_comments_received}}
+        <div>ПОСТАВЛЕННО:</div>
+        Лайков: {{total_likes_verb}}
+        Просмотров: {{total_views_verb}}
+        Комментариев: {{total_comments_verb}}
+    </div>
+    {% if object.pk in request.user.get_user_s_subscribes %}
+        <div><a href="{% url 'users:unsubscribe' object.pk %}">Отписаться</a></div>
+    {% else %}
+        <div><a href="{% url 'users:subscribe' object.pk %}">Подписаться</a></div>
+    {% endif %}
 {% endblock %}

@@ -5,6 +5,8 @@
     <link rel="stylesheet" href="{% static 'css/catalog_style.css' %}">
 {% endblock %}
 {% block content %}
+    <a id="url" href="{% url 'main:add_comment_to_theme_comment' %}"></a>
+
 {% if message %}
     <h1>{{message}}</h1>
 {% else %}
@@ -192,7 +194,7 @@
 {% if father_theme %}
 <div>
     <span>Отсавить коментарий</span>
-                <form action="{% url 'main:add_comment' %}" method="post">
+                <form id="add_comment" action="{% url 'main:add_comment_to_theme' %}" method="post">
                     {% csrf_token %}
                     <textarea name="content"></textarea>
                     <input type="hidden" name="theme" value="{{father_theme.pk}}">
@@ -202,12 +204,20 @@
                     Комментарии:
                     {% for comment in father_theme.comments %}
                         <div>
+                            <div>
                             {% if comment.user == request.user %}
+
                                 <a href="{% url 'main:del_comment_from_theme' comment.pk %}">УДАЛИТЬ</a>
                                 <a href="">РЕДАКТИРОВАТЬ</a>
-                                <a href="">ОТВЕТИТЬ</a>
-                            {% endif %}
+                                <div id="answer_trigger">
+                                    <input type="hidden" name="comment_pk" value="{{comment.pk}}" >
+                                    Ответить
+                                </div>
+                                <div id="answer_block"></div>
+                                {% endif %}
                             {{comment.content}}
+                                {{comment.get_sub_comments}}
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -219,4 +229,6 @@
 {% else %}
     <script src="{% static 'js/local_search_script.js' %}"></script>
 {% endif %}
+    <script src="{% static 'js/comments.js' %}"></script>
+
 {% endblock %}
