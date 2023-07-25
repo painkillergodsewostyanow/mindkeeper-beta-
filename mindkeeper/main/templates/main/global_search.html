@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="{% static 'css/global_search_style.css'%}">
 {% endblock %}
 {% block content %}
+    <a id="search_url" href="{% url 'main:global_search_ajax_json' %}"></a>
     <div id="test_output"></div>
     <div id="catalog">
 
@@ -15,6 +16,8 @@
 			<input class="input_query" id="input_query" type="text" name=query>
 		</form>
 	</div>
+<div class="container">
+    <div class="label">Темы: </div>
 	<ul class="catalog_place">
                 {% for theme in themes %}
                     <li class="wrapper">
@@ -36,8 +39,14 @@
                     </a>
                     </li>
                 {% endfor %}
-                {% for card in cards %}
-                    <li class="wrapper">
+    </ul>
+</div>
+
+<div class="container">
+    <div class="label">Карточки: </div>
+	<ul class="catalog_place">
+    {% for card in cards %}
+        <li class="wrapper">
                         <a href="{% url 'main:open_card' card.pk %}">
                         <div class="card">
                             {% if card.image %}
@@ -55,10 +64,9 @@
                         </div>
                         </a>
                     </li>
-                {% endfor %}
+        {% endfor %}
     </ul>
-
-
+</div>
 {% endblock %}
 {% block js %}
 

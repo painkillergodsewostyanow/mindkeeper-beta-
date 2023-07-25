@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, F
+from django.db.models import Q
 from django.http import JsonResponse
 from django.views.generic import TemplateView, UpdateView
 from django.shortcuts import render, HttpResponseRedirect, redirect
@@ -335,13 +335,13 @@ def global_search_ajax_json(request):
 
 def local_search_ajax_json(request):
     # TODO(Логика поиска)
-    themes = list(Themes.objects.filter(title__icontains=request.GET['query'])
+    themes = list(Themes.objects.filter(title__icontains=request.GET['query'], user=request.user)
                   .values('pk', 'image', 'title'))
 
     cards = list(Cards.objects.filter(
         Q(title__icontains=request.GET['query']) |
         Q(content__icontains=request.GET['query'])
-    )
+    ).filter(user=request.user)
                  .distinct()
                  .values('pk', 'image', 'title'))
 

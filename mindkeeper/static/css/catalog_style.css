@@ -108,3 +108,19 @@ form input {
 	text-align: center;
 	border-radius: 14px;
 }
+.comment{
+    word-break: break-all;
+    margin-top:1vw;
+    display: inline-block;
+    border: 0.2vw solid black;
+    border-radius: 0.8vw;
+    width: 48vw;
+    padding-left: 0.6vw;
+    padding-right: 0.6vw;
+}
+
+.comment_block{
+
+    padding-left: 2vw;
+
+}
