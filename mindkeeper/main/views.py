@@ -22,26 +22,45 @@ class IndexTemplateView(TemplateView):
 
 @login_required
 def storage(request):
-    if request.GET.get('query', False):
-        context = {
+    query = request.GET.get('query', False)
+    if query:
+        themes = set(list(Themes.objects.filter(title__icontains=query, user=request.user)) + list(
+            Themes.objects.filter(sub_theme_to__in=Themes.objects.filter(title__icontains=query,
+                                                                         user=request.user))) + list(
+            Themes.objects.filter(title__icontains=query, user=request.user,
+                                  sub_theme_to__isnull=True)))
 
-            'themes': set(list(Themes.objects.filter(title__icontains=request.GET['query'], user=request.user)) + list(
-                Themes.objects.filter(sub_theme_to__in=Themes.objects.filter(title__icontains=request.GET['query'],
-                                                                             user=request.user))) + list(
-                Themes.objects.filter(title__icontains=request.GET['query'], user=request.user,
-                                      sub_theme_to__isnull=True))),
+        cards = set(Cards.objects.filter(Q(title__icontains=query) |
+                                         Q(content__icontains=query)).filter(user=request.user))
 
-            'cards': Cards.objects.filter(Q(title__icontains=request.GET['query']) |
-                                          Q(content__icontains=request.GET['query']))
-            .filter(user=request.user)
+        if not themes and not cards:
+            context = {
 
-        }
+                'is_searched': True,
+                'message': "По данному запросу совпадени не найденно"
+
+            }
+
+        else:
+
+            context = {
+
+                'is_searched': True,
+                'themes': themes,
+                'cards': cards
+
+            }
+
+        return render(request, "main/catalog.html", context)
 
     else:
+        themes = Themes.get_super_themes_by_user(request.user)
+        cards = Cards.get_super_cards_by_user(request.user)
+
         context = {
 
-            "themes": Themes.get_super_themes_by_user(request.user),
-            "cards": Cards.get_super_cards_by_user(request.user)
+            'themes': themes,
+            'cards': cards
 
         }
 
@@ -296,15 +315,25 @@ def add_comment_to_theme_comment(request):
 # SEARCH
 def global_search(request):
     # TODO(Логика поиска)
+    query = request.GET.get('query', False)
+    if query:
 
-    if request.GET.get('query', False):
-        context = {
-            'themes': Themes.objects.filter(title__icontains=request.GET['query'], is_private=False),
+        cards = Cards.objects.filter(Q(title__icontains=query) | Q(content__icontains=query)).filter(is_private=False)
+        themes = Themes.objects.filter(title__icontains=query, is_private=False)
 
-            'cards': Cards.objects.filter(
-                Q(title__icontains=request.GET['query']) | Q(content__icontains=request.GET['query']))
-            .filter(is_private=False)
-        }
+        if not cards and not themes:
+            context = {
+
+                'massage': "По данному запросу совпадени не найденно"
+
+            }
+        else:
+            context = {
+                'themes': themes,
+                'cards': cards
+            }
+        return render(request, 'main/global_search.html', context)
+
     else:
         # TODO(Предпочтения)
         context = {
@@ -319,30 +348,45 @@ def global_search(request):
 
 def global_search_ajax_json(request):
     # TODO(Логика поиска)
-    themes = list(Themes.objects.filter(title__icontains=request.GET['query'])
-                  .filter(is_private=False)
-                  .values('pk', 'image', 'title'))
+    themes = Themes.objects.filter(title__icontains=request.GET['query']).filter(is_private=False)
 
-    cards = list(Cards.objects.filter(
+    cards = Cards.objects.filter(
         Q(title__icontains=request.GET['query']) |
         Q(content__icontains=request.GET['query'])
-    ).filter(is_private=False)
-                 .distinct()
-                 .values('pk', 'image', 'title'))
+    ).filter(is_private=False).distinct()
 
-    return JsonResponse({'themes': themes, 'cards': cards}, safe=False)
+    themes_json = list()
+    cards_json = list()
+    for card in cards:
+        cards_json.append(
+            {'pk': card.pk, 'image': card.image.url if card.image else "", 'title': card.title, 'likes': card.likes,
+             'views': card.views, 'comments': card.comments})
+
+    for theme in themes:
+        themes_json.append({'pk': theme.pk, 'image': theme.image.url if theme.image else "", 'title': theme.title,
+                            'likes': theme.likes, 'views': theme.views, 'comments': theme.comments})
+
+    return JsonResponse({'themes': themes_json, 'cards': cards_json}, safe=False)
 
 
 def local_search_ajax_json(request):
     # TODO(Логика поиска)
-    themes = list(Themes.objects.filter(title__icontains=request.GET['query'], user=request.user)
-                  .values('pk', 'image', 'title'))
+    themes = Themes.objects.filter(title__icontains=request.GET['query'], user=request.user)
 
-    cards = list(Cards.objects.filter(
+    cards = Cards.objects.filter(
         Q(title__icontains=request.GET['query']) |
         Q(content__icontains=request.GET['query'])
-    ).filter(user=request.user)
-                 .distinct()
-                 .values('pk', 'image', 'title'))
+    ).filter(user=request.user).distinct()
 
-    return JsonResponse({'themes': themes, 'cards': cards}, safe=False)
+    themes_json = list()
+    cards_json = list()
+    for card in cards:
+        cards_json.append(
+            {'pk': card.pk, 'image': card.image.url if card.image else "", 'title': card.title, 'likes': card.likes,
+             'views': card.views, 'comments': card.comments})
+
+    for theme in themes:
+        themes_json.append({'pk': theme.pk, 'image': theme.image.url if theme.image else "", 'title': theme.title,
+                            'likes': theme.likes, 'views': theme.views, 'comments': theme.comments})
+
+    return JsonResponse({'themes': themes_json, 'cards': cards_json}, safe=False)

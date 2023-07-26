@@ -66,6 +66,12 @@ body{
     color:white
 
 }
+
+.comments {
+
+    color:white
+
+}
 .comment{
     word-break: break-all;
     margin-top:1vw;
@@ -80,5 +86,13 @@ body{
 .comment_block{
 
     padding-left: 2vw;
+
+}
+#message{
+
+    margin-top: 2vw;
+    margin-bottom: 2vw;
+    text-align: center;
+    font-size: 4vw;
 
 }

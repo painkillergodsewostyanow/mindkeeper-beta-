@@ -6,72 +6,80 @@
 <link rel="stylesheet" href="{% static 'css/global_search_style.css'%}">
 {% endblock %}
 {% block content %}
-    <a id="search_url" href="{% url 'main:global_search_ajax_json' %}"></a>
-    <div id="test_output"></div>
-    <div id="catalog">
+<a id="search_url" href="{% url 'main:global_search_ajax_json' %}"></a>
+<div>
+    <form action="" method='get'>
+        <input class="input_query" id="input_query" type="text" name=query>
+    </form>
+</div>
 
-    </div>
-    <div>
-		<form action="" method='get'>
-			<input class="input_query" id="input_query" type="text" name=query>
-		</form>
-	</div>
+<div id="message">{{massage}}</div>
 <div class="container">
-    <div class="label">Темы: </div>
-	<ul class="catalog_place">
-                {% for theme in themes %}
-                    <li class="wrapper">
-                    <a href="{% url 'main:open_theme' theme.pk %}">
+    <div id="theme_catalog">
+        {% if themes %}
+        <div class="label">Темы:</div>
+        {% endif %}
+        <ul class="catalog_place">
+            {% for theme in themes %}
+            <li class="wrapper">
+                <a href="{% url 'main:open_theme' theme.pk %}">
                     <div class="card">
                         {% if theme.image %}
-                            <div class="photo">
-                                <img src="{{theme.image.url}}" alt="">
-                            </div>
+                        <div class="photo">
+                            <img src="{{theme.image.url}}" alt="">
+                        </div>
                         {% else %}
-                            <div class="photo">
-                                <img src=" " alt="">
-                            </div>
+                        <div class="photo">
+                            <img src=" " alt="">
+                        </div>
                         {% endif %}
                         <p class="object_title">{{theme.title}}</p>
                         <span class="views">{{theme.views}}</span>
                         <span class="likes">{{theme.likes}}</span>
+                        <span class="comments">{{theme.comments}}</span>
                     </div>
-                    </a>
-                    </li>
-                {% endfor %}
-    </ul>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
 </div>
 
 <div class="container">
-    <div class="label">Карточки: </div>
-	<ul class="catalog_place">
-    {% for card in cards %}
-        <li class="wrapper">
-                        <a href="{% url 'main:open_card' card.pk %}">
-                        <div class="card">
-                            {% if card.image %}
-                                <div class="photo">
-                                    <img src="{{ card.image.url }}" alt="">
-                                </div>
-                            {% else %}
-                                <div class="photo">
-                                    <img src="#" alt="">
-                                </div>
-                            {% endif %}
-                            <p class="object_title">{{card.title}}</p>
-                            <span class="views">{{card.views}}</span>
-                            <span class="likes">{{card.likes}}</span>
+    <div id="card_catalog">
+        {% if cards %}
+        <div class="label">Карточки:</div>
+        {% endif %}
+        <ul class="catalog_place">
+            {% for card in cards %}
+            <li class="wrapper">
+                <a href="{% url 'main:open_card' card.pk %}">
+                    <div class="card">
+                        {% if card.image %}
+                        <div class="photo">
+                            <img src="{{ card.image.url }}" alt="">
                         </div>
-                        </a>
-                    </li>
-        {% endfor %}
-    </ul>
+                        {% else %}
+                        <div class="photo">
+                            <img src="#" alt="">
+                        </div>
+                        {% endif %}
+                        <p class="object_title">{{card.title}}</p>
+                        <span class="views">{{card.views}}</span>
+                        <span class="likes">{{card.likes}}</span>
+                        <span class="comments">{{card.comments}}</span>
+                    </div>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
 </div>
 {% endblock %}
 {% block js %}
 
-    <script src="{% static 'js/search_script.js' %}"></script>
+<script src="{% static 'js/search_script.js' %}"></script>
 
-	<script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
 
 {% endblock %}
