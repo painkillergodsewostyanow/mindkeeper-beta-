@@ -142,7 +142,7 @@ function render_comment(data){
     document.getElementsByClassName('comments')[0].prepend(comment)
     }
 
-    comment.getElementsByClassName('answer_trigger')[0].onclick = add_add_comment_view
+    comment.getElementsByClassName('answer_trigger')[0].onclick = show_add_comment_view
 
 }
 
