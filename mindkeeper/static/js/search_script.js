@@ -100,12 +100,13 @@ function render_like(data){
                             <p class="object_title">{{this.title}}</p>
                             <span class="views">{{this.views}}</span>
                             <span class="likes">{{this.likes}}</span>
-                            <span class="comments">{{this.comments}}</span>
+                            <span class="count_comments">{{this.comments}}</span>
                         </div>
                         </a>
                         </li>
                     </ul>
             {{/each}}`
+
     let card_HTML = `
             <div class="label">${card_label}</div>
             <ul class="catalog_place">
@@ -132,7 +133,7 @@ function render_like(data){
                             <p class="object_title">{{this.title}}</p>
                             <span class="views">{{this.views}}</span>
                             <span class="likes">{{this.likes}}</span>
-                            <span class="comments">{{this.comments}}</span>
+                            <span class="count_comments">{{this.comments}}</span>
                         </div>
                         </a>
                         </li>

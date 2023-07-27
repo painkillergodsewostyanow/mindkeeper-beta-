@@ -246,6 +246,7 @@ class ThemeComments(Comments):
 
     @property
     def get_sub_comments(self):
+        # TODO(вернуть ВСЕ ответы)
         return ThemeComments.objects.filter(sub_comment_to=self)
 
 
@@ -254,6 +255,7 @@ class CardComments(Comments):
 
     @property
     def get_sub_comments(self):
+        # TODO(вернуть ВСЕ ответы)
         return CardComments.objects.filter(sub_comment_to=self)
 
 
