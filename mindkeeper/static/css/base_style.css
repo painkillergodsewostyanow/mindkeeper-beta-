@@ -67,7 +67,7 @@ body{
 
 }
 
-.comments {
+.count_comments {
 
     color:white
 
@@ -81,6 +81,11 @@ body{
     width: 48vw;
     padding-left: 0.6vw;
     padding-right: 0.6vw;
+}
+.comment:target{
+
+    box-shadow: 10px 8px 8px gray;
+
 }
 
 .comment_block{

@@ -6,7 +6,7 @@ function ajax_send(url, params) {
 		},
 	})
 	    .then(response => response.json())
-	    .then(json => render(json))
+	    .then(json => render_like(json))
 
 };
 
@@ -29,37 +29,19 @@ input.oninput = function(){
 //};
 
 
-function render(data){
+function render_like(data){
 
     Handlebars.registerHelper('if', function (v1, operator, v2, options) {
 
         switch (operator) {
             case '==':
                 return (v1 == v2) ? options.fn(this) : options.inverse(this);
-            case '===':
-                return (v1 === v2) ? options.fn(this) : options.inverse(this);
             case '!=':
-                return (v1 != v2) ? options.fn(this) : options.inverse(this);
-            case '!==':
-                return (v1 !== v2) ? options.fn(this) : options.inverse(this);
-            case '<':
-                return (v1 < v2) ? options.fn(this) : options.inverse(this);
-            case '<=':
-                return (v1 <= v2) ? options.fn(this) : options.inverse(this);
-            case '>':
-                return (v1 > v2) ? options.fn(this) : options.inverse(this);
-            case '>=':
-                return (v1 >= v2) ? options.fn(this) : options.inverse(this);
-            case '&&':
-                return (v1 && v2) ? options.fn(this) : options.inverse(this);
-            case '||':
-                return (v1 || v2) ? options.fn(this) : options.inverse(this);
             default:
                 return options.inverse(this);
         }
     });
 
-    let catalogs = ('catalog_place')
     let open_theme_URL = "http://127.0.0.1:8000/storage/theme/"
     let del_theme_URL = "http://127.0.0.1:8000/storage/del_theme/"
     let change_theme_URL = "http://127.0.0.1:8000/storage/change_theme/"

@@ -36,7 +36,6 @@ def storage(request):
         if not themes and not cards:
             context = {
 
-                'is_searched': True,
                 'message': "По данному запросу совпадени не найденно"
 
             }
@@ -45,7 +44,6 @@ def storage(request):
 
             context = {
 
-                'is_searched': True,
                 'themes': themes,
                 'cards': cards
 
@@ -282,8 +280,15 @@ def add_comment_generic(request, model, content, obj, sub_comment_to=None):
         print('Коментарий путсым быть не может')
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
 
-    model.objects.create(user=request.user, content=content, obj=obj, sub_comment_to=sub_comment_to)
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
+    comment = model.objects.create(user=request.user, content=content, obj=obj, sub_comment_to=sub_comment_to)
+
+    comment_json = {'pk': comment.pk, 'content': comment.content,
+                    'user': {'pk': comment.user.pk, 'username': comment.user.username},
+                    'sub_comment_to': {'pk': sub_comment_to.pk, 'user': sub_comment_to.user.username} if sub_comment_to else None,
+                    'request_user': request.user.pk}
+
+    return JsonResponse(
+        {'comment': comment_json}, safe=False)
 
 
 def add_comment_to_theme(request):
@@ -299,6 +304,7 @@ def add_comment_to_card(request):
 
 
 def add_comment_to_card_comment(request):
+    print(request.POST, 1)
     card = Cards.objects.get(pk=request.POST['obj']) if request.POST.get('obj') else None
     comment = CardComments.objects.get(pk=request.POST['comment']) if request.POST['comment'] else None
     content = request.POST['content'] if request.POST['content'] else None
@@ -360,33 +366,36 @@ def global_search_ajax_json(request):
     for card in cards:
         cards_json.append(
             {'pk': card.pk, 'image': card.image.url if card.image else "", 'title': card.title, 'likes': card.likes,
-             'views': card.views, 'comments': card.comments})
+             'views': card.views, 'comments': card.count_comments})
 
     for theme in themes:
         themes_json.append({'pk': theme.pk, 'image': theme.image.url if theme.image else "", 'title': theme.title,
-                            'likes': theme.likes, 'views': theme.views, 'comments': theme.comments})
+                            'likes': theme.likes, 'views': theme.views, 'comments': theme.count_comments})
 
     return JsonResponse({'themes': themes_json, 'cards': cards_json}, safe=False)
 
 
 def local_search_ajax_json(request):
     # TODO(Логика поиска)
-    themes = Themes.objects.filter(title__icontains=request.GET['query'], user=request.user)
+    query = request.GET['query']
+    themes = set(list(Themes.objects.filter(title__icontains=query, user=request.user)) + list(
+        Themes.objects.filter(sub_theme_to__in=Themes.objects.filter(title__icontains=query,
+                                                                     user=request.user))) + list(
+        Themes.objects.filter(title__icontains=query, user=request.user,
+                              sub_theme_to__isnull=True)))
 
-    cards = Cards.objects.filter(
-        Q(title__icontains=request.GET['query']) |
-        Q(content__icontains=request.GET['query'])
-    ).filter(user=request.user).distinct()
+    cards = set(Cards.objects.filter(Q(title__icontains=query) |
+                                     Q(content__icontains=query)).filter(user=request.user))
 
     themes_json = list()
     cards_json = list()
     for card in cards:
         cards_json.append(
             {'pk': card.pk, 'image': card.image.url if card.image else "", 'title': card.title, 'likes': card.likes,
-             'views': card.views, 'comments': card.comments})
+             'views': card.views, 'comments': card.count_comments})
 
     for theme in themes:
         themes_json.append({'pk': theme.pk, 'image': theme.image.url if theme.image else "", 'title': theme.title,
-                            'likes': theme.likes, 'views': theme.views, 'comments': theme.comments})
+                            'likes': theme.likes, 'views': theme.views, 'comments': theme.count_comments})
 
     return JsonResponse({'themes': themes_json, 'cards': cards_json}, safe=False)

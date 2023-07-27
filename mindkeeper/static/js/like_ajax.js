@@ -16,7 +16,7 @@ function getCookie(name) {
 const csrftoken = getCookie('csrftoken');
 const referrer = document.referrer
 
-function ajax_send(url, params) {
+function ajax_send(url) {
 	fetch(url, {
 		method: 'POST',
 		headers : {
@@ -27,7 +27,6 @@ function ajax_send(url, params) {
 	})
 	    .then(response => response.json())
 	    .then(json => render(json))
-
 };
 
 

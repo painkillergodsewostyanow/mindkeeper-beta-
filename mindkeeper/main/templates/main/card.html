@@ -1,7 +1,7 @@
 {% extends "main/base.html" %}
 {% load static %}
 {% block content %}
-    <a id="add_comment_url" href="{% url 'main:add_comment_to_card_comment' %}"></a>
+    <a id="add_answer_url" href="{% url 'main:add_comment_to_card_comment' %}"></a>
     <div>
         {{message}}
     </div>
@@ -25,11 +25,10 @@
             <input type="hidden" name="card" value="{{card.pk}}">
             <button type="submit">Оставить</button>
         </form>
-        <div>
-            <div>Комментарии:</div>
+        <div>Комментарии:</div>
+        <div class="comments">
                     {% for comment in card.comments %}
                         <div id="{{comment.pk}}" class="comment">
-                            <div>
                             {% if comment.user == request.user %}
                                 <div>
                                     <a href="{% url 'main:del_comment_from_card' comment.pk %}">x</a>
@@ -39,14 +38,11 @@
                                 <div><a href="{% url 'users:profile' comment.user.pk %}">{{comment.user}}</a></div>
                                 {{comment.content}}
                                 <div class="answer_trigger">
-                                    <input type="hidden" name="comment_pk" value="{{comment.pk}}" >
                                     Ответить
                                 </div>
-
-                            </div>
                         </div>
                         {% for sub_comment in comment.get_sub_comments %}
-                            <div id="sub_comment.pk" class="comment" style="margin-left: 2vw;">
+                            <div id="{{sub_comment.pk}}" class="comment">
                                 <div>
                                 {% if sub_comment.user == request.user %}
                                     <div>
@@ -59,12 +55,11 @@
                                     Дорогой, <a href="{% url 'users:profile' sub_comment.sub_comment_to.user.pk %}">{{sub_comment.sub_comment_to.user}}</a> {{sub_comment.content}}
                                 </div>
                                 <div class="answer_trigger">
-                                    <input type="hidden" name="comment_pk" value="{{sub_comment.pk}}" >
                                     Ответить
                                 </div>
                             </div>
                             {% for sub_comment_lvl3 in sub_comment.get_sub_comments %}
-                                <div id="sub_comment_lvl3.pk" class="comment" style="margin-left: 4vw;">
+                                <div id="{{sub_comment_lvl3.pk}}" class="comment">
                                     <div>
                                         {% if sub_comment_lvl3.user == request.user %}
                                             <div>
@@ -77,12 +72,11 @@
                                             Дорогой, <a href="{% url 'users:profile' sub_comment_lvl3.sub_comment_to.user.pk %}">{{sub_comment_lvl3.sub_comment_to.user}}</a> {{sub_comment_lvl3.content}}
                                         </div>
                                         <div class="answer_trigger">
-                                            <input type="hidden" name="comment_pk" value="{{sub_comment_lvl3.pk}}" >
                                             Ответить
                                     </div>
                                 </div>
                                 {% for sub_comment_lvl4 in sub_comment_lvl3.get_sub_comments %}
-                                    <div id="{{sub_comment_lvl4.pk}}" class="comment" style="margin-left: 6vw;">
+                                    <div id="{{sub_comment_lvl4.pk}}" class="comment">
                                         <div>
                                             {% if sub_comment_lvl4.user == request.user %}
                                                 <div>
@@ -101,7 +95,10 @@
                     {% endfor %}
         </div>
     </div>
+
+<div id="test"></div>
 <script src="{% static 'js/like_ajax.js' %}"></script>
 <script src="{% static 'js/comments.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
 {% endblock %}
 

@@ -56,6 +56,7 @@ class Themes(ResizeOnSaveMixin, CountableMixin, models.Model):
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Автор")
     title = models.CharField(max_length=255, verbose_name="Название")
     sub_theme_to = models.ForeignKey(to="self", on_delete=models.CASCADE, blank=True, null=True, verbose_name="Подтема для")
+
     class Meta:
         verbose_name = "Тема"
         verbose_name_plural = "Темы"
@@ -92,7 +93,11 @@ class Themes(ResizeOnSaveMixin, CountableMixin, models.Model):
 
     @property
     def comments(self):
-        return ThemeComments.objects.filter(obj=self, sub_comment_to__isnull=True).count()
+        return ThemeComments.objects.filter(obj=self, sub_comment_to__isnull=True)
+
+    @property
+    def count_comments(self):
+        return self.comments.count()
 
     @classmethod
     def count_user_s_likes_received(cls, user):
@@ -158,7 +163,7 @@ class Cards(ResizeOnSaveMixin, CountableMixin, models.Model):
 
     @property
     def comments(self):
-        return CardComments.objects.filter(obj=self, sub_comment_to__isnull=True).count()
+        return CardComments.objects.filter(obj=self, sub_comment_to__isnull=True)
 
     @classmethod
     def count_user_s_likes_received(cls, user):

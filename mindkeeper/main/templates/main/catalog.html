@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="{% static 'css/catalog_style.css' %}">
 {% endblock %}
 {% block content %}
-<a id="add_comment_url" href="{% url 'main:add_comment_to_theme_comment' %}"></a>
+<a id="add_answer_url" href="{% url 'main:add_comment_to_theme_comment' %}"></a>
 <a id="search_url" href="{% url 'main:local_search_ajax' %}"></a>
 
 
@@ -58,7 +58,7 @@
                         <p class="object_title">{{theme.title}}</p>
                         <span class="views">{{theme.views}}</span>
                         <span class="likes">{{theme.likes}}</span>
-                        <span class="comments">{{theme.comments}}</span>
+                        <span class="comments">{{theme.count_comments}}</span>
                     </div>
                 </a>
             </li>
@@ -78,7 +78,7 @@
                         <p class="object_title">{{theme.title}}</p>
                         <span class="views">{{theme.views}}</span>
                         <span class="likes">{{theme.likes}}</span>
-                        <span class="comments">{{theme.comments}}</span>
+                        <span class="comments">{{theme.count_comments}}</span>
                     </div>
                 </a>
             </li>
@@ -142,7 +142,7 @@
                         <p class="object_title">{{card.title}}</p>
                         <span class="views">{{card.views}}</span>
                         <span class="likes">{{card.likes}}</span>
-                        <span class="comments">{{card.comments}}</span>
+                        <span class="comments">{{card.count_comments}}</span>
                     </div>
                 </a>
             </li>
@@ -162,7 +162,7 @@
                         <p class="object_title">{{card.title}}</p>
                         <span class="views">{{card.views}}</span>
                         <span class="likes">{{card.likes}}</span>
-                        <span class="comments">{{card.comments}}</span>
+                        <span class="count_comments">{{card.count_comments}}</span>
                     </div>
                 </a>
             </li>
@@ -205,6 +205,7 @@
         <button type="submit">Оставить</button>
     </form>
     <div>Комментарии:</div>
+    <div class="comments">
     {% for comment in father_theme.comments %}
     <div id="{{comment.pk}}" class="comment">
         <div>
@@ -217,14 +218,13 @@
             <div><a href="{% url 'users:profile' comment.user.pk %}">{{comment.user}}</a></div>
             {{comment.content}}
             <div class="answer_trigger">
-                <input type="hidden" name="comment_pk" value="{{comment.pk}}">
                 Ответить
             </div>
 
         </div>
     </div>
     {% for sub_comment in comment.get_sub_comments %}
-    <div id="sub_comment.pk" class="comment" style="margin-left: 2vw;">
+    <div id="{{sub_comment.pk}}" class="comment">
         <div>
             {% if sub_comment.user == request.user %}
             <div>
@@ -238,12 +238,11 @@
             {{sub_comment.content}}
         </div>
         <div class="answer_trigger">
-            <input type="hidden" name="comment_pk" value="{{sub_comment.pk}}">
             Ответить
         </div>
     </div>
     {% for sub_comment_lvl3 in sub_comment.get_sub_comments %}
-    <div id="sub_comment_lvl3.pk" class="comment" style="margin-left: 4vw;">
+    <div id="{{sub_comment_lvl3.pk}}" class="comment">
         <div>
             {% if sub_comment_lvl3.user == request.user %}
             <div>
@@ -257,13 +256,11 @@
             {{sub_comment_lvl3.content}}
         </div>
         <div class="answer_trigger">
-            <input type="hidden" name="comment_pk" value="{{sub_comment_lvl3.pk}}">
             Ответить
         </div>
     </div>
     {% for sub_comment_lvl4 in sub_comment_lvl3.get_sub_comments %}
-    <div id="{{sub_comment_lvl4.pk}}" class="comment" style="margin-left: 6vw;">
-        <div>
+    <div id="{{sub_comment_lvl4.pk}}" class="comment">
             {% if sub_comment_lvl4.user == request.user %}
             <div>
                 <a href="{% url 'main:del_comment_from_theme' sub_comment_lvl4.pk %}">x</a>
@@ -274,13 +271,13 @@
             <div>Ответ на <a href="#{{sub_comment_lvl4.sub_comment_to.pk}}">коментарий</a></div>
             Дорогой, <a href="{% url 'users:profile' sub_comment_lvl4.sub_comment_to.user.pk %}">{{sub_comment_lvl4.sub_comment_to.user}}</a>
             {{sub_comment_lvl4.content}}
-        </div>
     </div>
     {% endfor %}
     {% endfor %}
     {% endfor %}
     {% endfor %}
-</div>
+        </div>
+    </div>
 {% endif %}
 {% if father_theme %}
 <script src="{% static 'js/like_ajax.js' %}"></script>
