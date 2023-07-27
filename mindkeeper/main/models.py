@@ -93,7 +93,7 @@ class Themes(ResizeOnSaveMixin, CountableMixin, models.Model):
 
     @property
     def comments(self):
-        return ThemeComments.objects.filter(obj=self, sub_comment_to__isnull=True)
+        return ThemeComments.objects.filter(obj=self)
 
     @property
     def count_comments(self):

@@ -2,6 +2,7 @@
 {% load static %}
 {% block content %}
     <a id="add_answer_url" href="{% url 'main:add_comment_to_card_comment' %}"></a>
+    <input id="is_theme" type="hidden" value="false">
     <div>
         {{message}}
     </div>
@@ -33,8 +34,14 @@
                                 <div>
                                 {% if comment.user == request.user %}
                                     <div>
-                                        <a href="{% url 'main:del_comment_from_card' comment.pk %}">x</a>
-                                        <a href="">@</a>
+                                        <div id="del_comment">
+                                            x
+                                            <a href="{% url 'main:del_comment_from_card' comment.pk %}"></a>
+                                        </div>
+                                        <div id="update_comment">
+                                            @
+                                            <a href=""></a>
+                                        </div>
                                     </div>
                                     {% endif %}
                                     <div><a href="{% url 'users:profile' comment.user.pk %}">{{comment.user}}</a></div>
@@ -47,14 +54,22 @@
                             </div>
                         {% else %}
                         <div id="{{comment.pk}}" class="comment">
+                            <div>
                             {% if comment.user == request.user %}
                                 <div>
-                                    <a href="{% url 'main:del_comment_from_card' comment.pk %}">x</a>
-                                    <a href="">@</a>
+                                    <div id="del_comment">
+                                        x
+                                        <a href="{% url 'main:del_comment_from_card' comment.pk %}"></a>
+                                    </div>
+                                    <div id="update_comment">
+                                        @
+                                        <a href=""></a>
+                                    </div>
                                 </div>
                                 {% endif %}
                                 <div><a href="{% url 'users:profile' comment.user.pk %}">{{comment.user}}</a></div>
                                 {{comment.content}}
+                                </div>
                                 <div class="answer_trigger">
                                     Ответить
                                 </div>

@@ -16,7 +16,7 @@ function getCookie(name) {
 const csrftoken = getCookie('csrftoken');
 const referrer = document.referrer
 
-function ajax_send(url) {
+function ajax_like(url) {
 	fetch(url, {
 		method: 'POST',
 		headers : {
@@ -35,7 +35,7 @@ let like_trigger = document.getElementById('like_trigger');
 like_trigger.onclick = function(){
 
 	let url = like_trigger.getElementsByTagName('a')[0].href
-	ajax_send(url)
+	ajax_like(url)
 
 };
 

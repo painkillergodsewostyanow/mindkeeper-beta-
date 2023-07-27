@@ -7,6 +7,7 @@
 {% block content %}
 <a id="add_answer_url" href="{% url 'main:add_comment_to_theme_comment' %}"></a>
 <a id="search_url" href="{% url 'main:local_search_ajax' %}"></a>
+<input id="is_theme" type="hidden" value="true">
 
 
 <div class="container">
@@ -206,14 +207,20 @@
     </form>
     <div>Комментарии:</div>
         <div class="comments">
-                    {% for comment in card.comments %}
+                    {% for comment in father_theme.comments %}
                         {% if comment.sub_comment_to %}
                             <div id="{{comment.pk}}" class="comment">
                                 <div>
                                 {% if comment.user == request.user %}
                                     <div>
-                                        <a href="{% url 'main:del_comment_from_card' comment.pk %}">x</a>
-                                        <a href="">@</a>
+                                        <div id="del_comment">
+                                            x
+                                            <a href="{% url 'main:del_comment_from_theme' comment.pk %}"></a>
+                                        </div>
+                                        <div id="update_comment">
+                                            @
+                                            <a href=""></a>
+                                        </div>
                                     </div>
                                     {% endif %}
                                     <div><a href="{% url 'users:profile' comment.user.pk %}">{{comment.user}}</a></div>
@@ -226,14 +233,22 @@
                             </div>
                         {% else %}
                         <div id="{{comment.pk}}" class="comment">
+                            <div>
                             {% if comment.user == request.user %}
                                 <div>
-                                    <a href="{% url 'main:del_comment_from_card' comment.pk %}">x</a>
-                                    <a href="">@</a>
+                                    <div id="del_comment">
+                                        x
+                                        <a href="{% url 'main:del_comment_from_theme' comment.pk %}"></a>
+                                    </div>
+                                    <div id="update_comment">
+                                        @
+                                        <a href=""></a>
+                                    </div>
                                 </div>
                                 {% endif %}
                                 <div><a href="{% url 'users:profile' comment.user.pk %}">{{comment.user}}</a></div>
                                 {{comment.content}}
+                                </div>
                                 <div class="answer_trigger">
                                     Ответить
                                 </div>

@@ -101,3 +101,19 @@ body{
     font-size: 4vw;
 
 }
+
+#del_comment{
+
+    float: right;
+    display: inline;
+    color: gray;
+
+}
+
+#update_comment {
+
+    float: right;
+    display: inline;
+    color: gray;
+
+}

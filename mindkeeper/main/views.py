@@ -222,12 +222,16 @@ class EditTheme(UpdateWithCheckAccessOnGet):
 @login_required
 def delete_generic(request, model, object_pk):
     obj = model.objects.filter(pk=object_pk).first()
+    json_comments = [{'pk': obj.pk}]
+    for comment in obj.get_sub_comments:
+        json_comments.append({'pk': comment.pk})
     if obj:
         if check_access(request.user, obj):
             obj.delete()
         else:
             print('Нет доступа')
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
+
+    return JsonResponse({'deleted_objs': json_comments}, safe=False)
 
 
 def delete_theme(request, theme_pk):
