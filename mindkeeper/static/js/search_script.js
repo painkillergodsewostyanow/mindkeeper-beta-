@@ -23,10 +23,6 @@ input.oninput = function(){
          ajax_send(url, params)
       }, 500);
     };
-//       let url = document.getElementById('search_url').href
-//       let params = `query=${input.value.toString()}`;
-//       ajax_send(url, params)
-//};
 
 
 function render_like(data){

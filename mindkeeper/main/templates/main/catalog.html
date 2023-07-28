@@ -9,6 +9,7 @@
 <a id="search_url" href="{% url 'main:local_search_ajax' %}"></a>
 <input id="is_theme" type="hidden" value="true">
 
+
 <div class="container">
     {% if father_theme %}
     <div class="father_theme">
@@ -38,14 +39,20 @@
             {% for theme in themes %}
             {% if theme.user == request.user %}
             <li class="wrapper">
-                <a href="{% url 'main:open_theme' theme.pk %}">
-                    <div class="card">
+                    <div id="{{theme.pk}}" class="card">
                         <object>
-                            <a href="{% url 'main:del_theme' theme.pk %}" class="cross">X</a>
+                            <div id="del_obj">
+                                X
+                                <a href="{% url 'main:del_theme' theme.pk %}"></a>
+                            </div>
                         </object>
                         <object>
-                            <a href="{% url 'main:edit_theme' theme.pk %}" class="cross">@</a>
+                            <div id="update_obj">
+                                @
+                                <a href="{% url 'main:edit_theme' theme.pk %}"></a>
+                            </div>
                         </object>
+                        <a href="{% url 'main:open_theme' theme.pk %}">
                         {% if theme.image %}
                         <div class="photo">
                             <img src="{{theme.image.url}}" alt="">
@@ -60,12 +67,12 @@
                         <span class="likes">{{theme.likes}}</span>
                         <span class="count_comments">{{theme.count_comments}}</span>
                     </div>
-                </a>
+                    </a>
             </li>
             {% else %}
             <li class="wrapper">
                 <a href="{% url 'main:open_theme' theme.pk %}">
-                    <div class="card">
+                    <div id="{{theme.pk}}" class="card">
                         {% if theme.image %}
                         <div class="photo">
                             <img src="{{theme.image.url}}" alt="">
@@ -122,14 +129,20 @@
             {% for card in cards %}
             {% if card.user == request.user %}
             <li class="wrapper">
-                <a href="{% url 'main:open_card' card.pk %}">
-                    <div class="card">
+                    <div id="{{card.pk}}" class="card">
                         <object>
-                            <a href="{% url 'main:del_card' card.pk %}" class="cross">X</a>
+                            <div id="del_obj">
+                                X
+                                <a href="{% url 'main:del_card' card.pk %}"></a>
+                            </div>
                         </object>
                         <object>
-                            <a href="{% url 'main:edit_card' card.pk %}" class="cross">@</a>
+                            <div id="update_obj">
+                                @
+                                <a href="{% url 'main:edit_card' card.pk %}"></a>
+                            </div>
                         </object>
+                        <a href="{% url 'main:open_card' card.pk %}">
                         {% if card.image %}
                         <div class="photo">
                             <img src="{{ card.image.url }}" alt="">
@@ -144,12 +157,12 @@
                         <span class="likes">{{card.likes}}</span>
                         <span class="comments">{{card.count_comments}}</span>
                     </div>
-                </a>
+                    </a>
             </li>
             {% else %}
             <li class="wrapper">
                 <a href="{% url 'main:open_card' card.pk %}">
-                    <div class="card">
+                    <div id="{{card.pk}}" class="card">
                         {% if card.image %}
                         <div class="photo">
                             <img src="{{ card.image.url }}" alt="">
@@ -266,5 +279,7 @@
 
 {% endif %}
 <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="{% static 'js/ajax_del_theme_card.js' %}"></script>
+<script src="{% static 'js/csrf_token.js' %}"></script>
+
 {% endblock %}

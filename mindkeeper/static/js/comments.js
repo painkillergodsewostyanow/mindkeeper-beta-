@@ -1,5 +1,4 @@
-// consts
-const csrf_token = document.getElementById('add_comment').getElementsByTagName('input')[0].value
+//const
 const host = 'http://127.0.0.1:8000/'
 
 // add listeners
@@ -68,7 +67,7 @@ function ajax_comment(url, event, form, is_sub_comment) {
 
     if (is_sub_comment){
 
-        form.parentNode.removeChild(form)
+        form.remove()
 
     }else{
 
@@ -81,14 +80,6 @@ function ajax_comment(url, event, form, is_sub_comment) {
 	})
 	    .then(response => response.json())
 	    .then(json => render_add_comment(json))
-};
-
-function ajax_del_comment(url) {
-    fetch(url, {
-		method: 'POST',
-	})
-	    .then(response => response.json())
-	    .then(json => render(json))
 };
 
 function ajax_del_comment(url) {
@@ -213,7 +204,7 @@ function render_del_comment(data) {
 
     for (i=0; i<deleted_comment_id.length; i++){
 
-        document.getElementById(deleted_comment_id[i]).parentNode.removeChild(document.getElementById(deleted_comment_id[i]))
+        document.getElementById(deleted_comment_id[i]).remove()
 
     }
 

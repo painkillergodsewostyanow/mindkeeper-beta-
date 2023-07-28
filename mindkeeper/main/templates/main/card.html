@@ -3,6 +3,9 @@
 {% block content %}
     <a id="add_answer_url" href="{% url 'main:add_comment_to_card_comment' %}"></a>
     <input id="is_theme" type="hidden" value="false">
+    {% if request.user == card.user %}
+    <div><a href="{% url 'main:edit_card' card.pk %}">Изменить</a></div>
+    {% endif %}
     <div>
         {{message}}
     </div>
@@ -18,6 +21,7 @@
             <a href="{% url 'main:like_card' card.pk %}"></a>
         </div>
     </div>
+
     <div class="comment_block">
         <span>Отсавить коментарий</span>
         <form id="add_comment" action="{% url 'main:add_comment_to_card' %}" method="post">
@@ -83,5 +87,6 @@
 <script src="{% static 'js/like_ajax.js' %}"></script>
 <script src="{% static 'js/comments.js' %}"></script>
 <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
+<script src="{% static 'js/csrf_token.js' %}"></script>
 {% endblock %}
 

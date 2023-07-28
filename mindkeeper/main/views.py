@@ -220,37 +220,47 @@ class EditTheme(UpdateWithCheckAccessOnGet):
 
 
 @login_required
-def delete_generic(request, model, object_pk):
-    obj = model.objects.filter(pk=object_pk).first()
-    if obj:
-        json_comments = []
+def delete_generic(request, obj, json_answer):
+    if check_access(request.user, obj):
+        obj.delete()
+    else:
+        print('Нет доступа')
 
-        for comment in obj.get_sub_comments:
-            json_comments.append({'pk': comment.pk})
-
-        if obj:
-            if check_access(request.user, obj):
-                obj.delete()
-            else:
-                print('Нет доступа')
-
-        return JsonResponse({'deleted_objs': json_comments}, safe=False)
+    return JsonResponse({'deleted_objs': json_answer}, safe=False)
 
 
 def delete_theme(request, theme_pk):
-    return delete_generic(request, Themes, theme_pk)
+    obj = Themes.objects.get(pk=theme_pk)
+    json_theme = [{'pk': obj.pk}]
+
+    return delete_generic(request, obj, json_theme)
 
 
 def delete_card(request, card_pk):
-    return delete_generic(request, Cards, card_pk)
+    obj = Cards.objects.get(pk=card_pk)
+    json_card = [{'pk': obj.pk}]
+
+    return delete_generic(request, obj, json_card)
 
 
 def delete_comment_from_card(request, comment_pk):
-    return delete_generic(request, CardComments, comment_pk)
+    obj = CardComments.objects.get(pk=comment_pk)
+
+    json_comments = []
+    for comment in obj.get_sub_comments:
+        json_comments.append({'pk': comment.pk})
+
+    return delete_generic(request, obj, json_comments)
 
 
 def delete_comment_from_theme(request, comment_pk):
-    return delete_generic(request, ThemeComments, comment_pk)
+    obj = ThemeComments.objects.get(pk=comment_pk)
+
+    json_comments = []
+    for comment in obj.get_sub_comments:
+        json_comments.append({'pk': comment.pk})
+
+    return delete_generic(request, obj, json_comments)
 
 
 @login_required

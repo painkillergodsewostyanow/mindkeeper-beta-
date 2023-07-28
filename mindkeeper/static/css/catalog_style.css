@@ -86,14 +86,7 @@
 .container{
 	overflow: hidden;
 }
-.cross{
-	position: relative;
-	float:right;
-	top: 0.8vw;
-	right: 1.4vw;
-	text-decoration: none;
-	color:white;
-}
+
 form {text-align:center;}
 
 .input_query{
@@ -121,5 +114,28 @@ form input {
 .comment_block{
 
     padding-left: 2vw;
+
+}
+#del_obj{
+
+    position: relative;
+	float:right;
+	top: 0.8vw;
+	right: 1.4vw;
+	text-decoration: none;
+	color:white;
+    display: inline;
+
+}
+
+#update_obj{
+
+    position: relative;
+	float:right;
+	top: 0.8vw;
+	right: 1.4vw;
+	text-decoration: none;
+	color:white;
+    display: inline;
 
 }
