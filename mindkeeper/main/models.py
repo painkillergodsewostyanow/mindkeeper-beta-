@@ -240,14 +240,22 @@ class Comments(models.Model):
     time_created = models.TimeField(auto_now_add=True)
     sub_comment_to = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True,)
 
+    @staticmethod
+    def parse_comments_tree(parent, model):
+        answer = [parent]
+        if len(model.objects.filter(sub_comment_to=parent)) > 0:
+            for sub_comment in model.objects.filter(sub_comment_to=parent):
+                return answer + model.parse_comments_tree(sub_comment, model)
+
+        return answer
+
 
 class ThemeComments(Comments):
     obj = models.ForeignKey(Themes, on_delete=models.CASCADE)
 
     @property
     def get_sub_comments(self):
-        # TODO(вернуть ВСЕ ответы)
-        return ThemeComments.objects.filter(sub_comment_to=self)
+        return ThemeComments.parse_comments_tree(self, ThemeComments)
 
 
 class CardComments(Comments):
@@ -255,8 +263,7 @@ class CardComments(Comments):
 
     @property
     def get_sub_comments(self):
-        # TODO(вернуть ВСЕ ответы)
-        return CardComments.objects.filter(sub_comment_to=self)
+        return ThemeComments.parse_comments_tree(self, CardComments)
 
 
 # class Notifications(models.Model):

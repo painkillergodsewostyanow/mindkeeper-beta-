@@ -210,6 +210,7 @@ function render_del_comment(data) {
     deleted_comments = JSON.parse(JSON.stringify(data.deleted_objs))
     deleted_comment_id = []
     deleted_comments.forEach(function(i){ deleted_comment_id.push(i.pk)})
+
     for (i=0; i<deleted_comment_id.length; i++){
 
         document.getElementById(deleted_comment_id[i]).parentNode.removeChild(document.getElementById(deleted_comment_id[i]))

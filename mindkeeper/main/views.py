@@ -223,7 +223,7 @@ class EditTheme(UpdateWithCheckAccessOnGet):
 def delete_generic(request, model, object_pk):
     obj = model.objects.filter(pk=object_pk).first()
     if obj:
-        json_comments = [{'pk': obj.pk}]
+        json_comments = []
 
         for comment in obj.get_sub_comments:
             json_comments.append({'pk': comment.pk})
