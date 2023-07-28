@@ -26,4 +26,19 @@
     {% else %}
         <div><a href="{% url 'users:subscribe' object.pk %}">Подписаться</a></div>
     {% endif %}
+
+
+<div>
+    картотека:
+    <div>
+        Супертемы:
+        {{super_theme}}
+    </div>
+
+    <div>
+        Суперкарточки:
+        {{super_card}}
+    </div>
+
+</div>
 {% endblock %}

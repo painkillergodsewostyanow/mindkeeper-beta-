@@ -75,14 +75,20 @@ function render_like(data){
             <ul class="catalog_place">
             {{#each themes}}
                         <li class="wrapper">
-                        <a href="${open_theme_URL}{{this.pk}}">
                         <div class="card">
-                            <object>
-                                <a href="${del_theme_URL}{{this.pk}}" class="cross">X</a>
-                            </object>
-                             <object>
-                                <a href="${change_theme_URL}{{this.pk}}" class="cross">@</a>
-                            </object>
+                        <object>
+                            <div id="del_obj">
+                                X
+                                <a href="{% url 'main:del_theme' theme.pk %}"></a>
+                            </div>
+                        </object>
+                        <object>
+                            <div id="update_obj">
+                                @
+                                <a href="{% url 'main:edit_theme' theme.pk %}"></a>
+                            </div>
+                        </object>
+                        <a href="${open_theme_URL}{{this.pk}}">
                             {{#if this.image '!=' ""}}
                                 <div class="photo">
                                     <img src="{{this.image}}" alt="">
@@ -108,14 +114,20 @@ function render_like(data){
             <ul class="catalog_place">
             {{#each cards}}
                         <li class="wrapper">
-                        <a href="${open_card_URL}{{this.pk}}">
                         <div class="card">
-                            <object>
-                                <a href="${del_card_URL}{{this.pk}}" class="cross">X</a>
-                            </object>
-                             <object>
-                                <a href="${change_card_URL}{{this.pk}}" class="cross">@</a>
-                            </object>
+                        <object>
+                            <div id="del_obj">
+                                X
+                                <a href="{% url 'main:del_card' card.pk %}"></a>
+                            </div>
+                        </object>
+                        <object>
+                            <div id="update_obj">
+                                @
+                                <a href="{% url 'main:edit_card' card.pk %}"></a>
+                            </div>
+                        </object>
+                        <a href="${open_card_URL}{{this.pk}}">
                             {{#if this.image '!=' ""}}
                                 <div class="photo">
                                     <img src="{{this.image}}" alt="">

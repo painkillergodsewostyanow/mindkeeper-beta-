@@ -165,6 +165,10 @@ class Cards(ResizeOnSaveMixin, CountableMixin, models.Model):
     def comments(self):
         return CardComments.objects.filter(obj=self)
 
+    @property
+    def count_comments(self):
+        return self.comments.count()
+
     @classmethod
     def count_user_s_likes_received(cls, user):
         return cls.count_received(CardLikes, user)

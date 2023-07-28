@@ -72,11 +72,20 @@ def open_theme(request, theme):
         if not ThemeViews.objects.filter(obj=theme, user=request.user).first():
             ThemeViews.objects.create(obj=theme, user=request.user)
 
-    context = {
-        'father_theme': Themes.objects.filter(pk=father_theme).first(),
-        "themes": Themes.objects.filter(sub_theme_to=theme),
-        "cards": Cards.objects.filter(theme=theme)
-    }
+    if request.user == theme.user:
+
+        context = {
+            'father_theme': Themes.objects.filter(pk=father_theme).first(),
+            "themes": Themes.objects.filter(sub_theme_to=theme),
+            "cards": Cards.objects.filter(theme=theme)
+        }
+
+    else:
+        context = {
+            'father_theme': Themes.objects.filter(pk=father_theme).first(),
+            "themes": Themes.objects.filter(sub_theme_to=theme).filter(is_private=False),
+            "cards": Cards.objects.filter(theme=theme).filter(is_private=False)
+        }
 
     if theme:
         if theme.is_private:

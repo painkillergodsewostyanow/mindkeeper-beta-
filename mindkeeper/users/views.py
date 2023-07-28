@@ -39,6 +39,13 @@ class UserDetailView(UserStatisticInContextMixin, DetailView):
     model = User
     template_name = 'users/profile.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(UserDetailView, self).get_context_data(**kwargs)
+        context['super_theme'] = Themes.get_super_themes_by_user(self.request.user).filter(is_private=False)
+        context['super_card'] = Cards.get_super_cards_by_user(self.request.user).filter(is_private=False)
+        # TODO(Самое популярное)
+
+        return context
 
 class UserUpdateView(UserStatisticInContextMixin, UpdateView, LoginRequiredMixin):
     model = User

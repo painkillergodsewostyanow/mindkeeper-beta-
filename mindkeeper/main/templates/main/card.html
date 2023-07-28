@@ -3,6 +3,13 @@
 {% block content %}
     <a id="add_answer_url" href="{% url 'main:add_comment_to_card_comment' %}"></a>
     <input id="is_theme" type="hidden" value="false">
+
+    {% if card.theme %}
+        <a href="{% url 'main:open_theme' card.theme.pk %}"><- {{card.theme.title}}</a>
+    {% else %}
+        <a href="{% url 'main:storage' %}"><- хранилище</a>
+    {% endif %}
+
     {% if request.user == card.user %}
     <div><a href="{% url 'main:edit_card' card.pk %}">Изменить</a></div>
     {% endif %}
