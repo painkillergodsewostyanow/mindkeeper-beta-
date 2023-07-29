@@ -1,4 +1,13 @@
+from django.http import JsonResponse
+from django.conf import settings
+
+
 def check_access(user, to=None,  users_with_access=None):
+    if getattr(to, 'obj', False):
+        if to.obj.user != user:
+            return False
+        return True
+
     if to:
         if to.user != user:
             return False
@@ -8,4 +17,15 @@ def check_access(user, to=None,  users_with_access=None):
             return False
 
     return True
+
+
+def ajax_login_required(func):
+
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({"authenticated": False, "login_url": settings.LOGIN_URL}, safe=False)
+        return func(request, *args, **kwargs)
+
+    return wrapper
+
 

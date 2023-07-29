@@ -33,7 +33,7 @@ function ajax_del_theme(url) {
 
 function render_del_theme(data){
 
-       let card = document.getElementById(JSON.parse(JSON.stringify(data.deleted_objs))[0].pk)
+       let card = document.getElementById(data.deleted_objs[0].pk)
        card.remove()
 
 }

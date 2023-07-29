@@ -151,4 +151,5 @@ LOGIN_REDIRECT_URL = reverse_lazy('users:login')
 
 
 #SUMMERNOTE
-SUMMERNOTE_CONFIG = {'width': '100%', 'height': '400px'}
+SUMMERNOTE_CONFIG = {'width': '100%', 'height': '400px',
+                     'attachment_upload_to': 'card_content_image'}

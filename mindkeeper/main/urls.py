@@ -31,6 +31,8 @@ urlpatterns = [
     path('storage/add_comment_to_theme_comment', add_comment_to_theme_comment, name="add_comment_to_theme_comment"),
     path('storage/<int:comment_pk>/del_comment_from_card', delete_comment_from_card, name='del_comment_from_card'),
     path('storage/<int:comment_pk>/del_comment_from_theme', delete_comment_from_theme, name='del_comment_from_theme'),
+    path('storage/edit_card_comment/<int:comment_pk>', edit_card_comment, name="edit_card_comment"),
+    path('storage/edit_theme_comment/<int:comment_pk>', edit_theme_comment, name="edit_theme_comment")
 ]
 
 

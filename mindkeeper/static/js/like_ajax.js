@@ -25,5 +25,11 @@ like_trigger.onclick = function(){
 };
 
 function render(data){
+    if (data.authenticated == false){
+
+        window.location.replace(`${host}${data.login_url}`);
+
+    }
+
     document.getElementById('likes').innerHTML = JSON.stringify(data.like)
 }

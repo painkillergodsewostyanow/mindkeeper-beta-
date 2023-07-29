@@ -1,11 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.generic import TemplateView, UpdateView
 from django.shortcuts import render, HttpResponseRedirect, redirect
 from .forms import *
 from django.urls import reverse
-from .scripts import check_access
+from .scripts import check_access, ajax_login_required
 
 
 class IndexTemplateView(TemplateView):
@@ -228,7 +228,22 @@ class EditTheme(UpdateWithCheckAccessOnGet):
         return reverse('main:open_theme', kwargs={'theme': self.kwargs['pk']})
 
 
-@login_required
+def edit_card_comment(request, comment_pk):
+    new_content = request.POST['content']
+    comment = CardComments.objects.get(pk=comment_pk)
+    comment.content = new_content
+    comment.save()
+    return JsonResponse({'updated_comment': {'pk': comment.pk, 'content': comment.content}})
+
+
+def edit_theme_comment(request, comment_pk):
+    new_content = request.POST['content']
+    comment = ThemeComments.objects.get(pk=comment_pk)
+    comment.content = new_content
+    comment.save()
+    return JsonResponse({'updated_comment': {'pk': comment.pk, 'content': comment.content}})
+
+
 def delete_generic(request, obj, json_answer):
     if check_access(request.user, obj):
         obj.delete()
@@ -272,7 +287,7 @@ def delete_comment_from_theme(request, comment_pk):
     return delete_generic(request, obj, json_comments)
 
 
-@login_required
+@ajax_login_required
 def like_generic(request, obj, model):
     like_obj = model.objects.filter(user=request.user, obj=obj).first()
     like_counter = model.objects.filter(obj=obj)
@@ -288,8 +303,6 @@ def like_generic(request, obj, model):
     return JsonResponse({'like': like_counter.count()}, safe=False)
 
 
-# TODO(AJAX)
-@login_required
 def like_card(request, card_pk):
     obj = Cards.objects.filter(pk=card_pk).first()
     return like_generic(request, obj, CardLikes)
@@ -300,17 +313,21 @@ def like_theme(request, theme_pk):
     return like_generic(request, obj, ThemeLikes)
 
 
-@login_required
+@ajax_login_required
 def add_comment_generic(request, model, content, obj, sub_comment_to=None):
     if not content:
         print('Коментарий путсым быть не может')
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
 
+    # if not request.user.is_authenticated:
+    #     return JsonResponse({"authenticated": False, "login_url": settings.LOGIN_URL}, safe=False)
+
     comment = model.objects.create(user=request.user, content=content, obj=obj, sub_comment_to=sub_comment_to)
 
     comment_json = {'pk': comment.pk, 'content': comment.content,
                     'user': {'pk': comment.user.pk, 'username': comment.user.username},
-                    'sub_comment_to': {'pk': sub_comment_to.pk, 'user': sub_comment_to.user.username} if sub_comment_to else None,
+                    'sub_comment_to': {'pk': sub_comment_to.pk,
+                                       'user': sub_comment_to.user.username} if sub_comment_to else None,
                     'request_user': request.user.pk}
 
     return JsonResponse(
@@ -330,16 +347,15 @@ def add_comment_to_card(request):
 
 
 def add_comment_to_card_comment(request):
-    print(request.POST, 1)
     card = Cards.objects.get(pk=request.POST['obj']) if request.POST.get('obj') else None
-    comment = CardComments.objects.get(pk=request.POST['comment']) if request.POST['comment'] else None
+    comment = CardComments.objects.get(pk=request.POST['comment'][8:]) if request.POST['comment'] else None
     content = request.POST['content'] if request.POST['content'] else None
     return add_comment_generic(request, CardComments, content, card, comment)
 
 
 def add_comment_to_theme_comment(request):
     theme = Themes.objects.get(pk=request.POST['obj']) if request.POST.get('obj') else None
-    comment = ThemeComments.objects.get(pk=request.POST['comment']) if request.POST['comment'] else None
+    comment = ThemeComments.objects.get(pk=request.POST['comment'][8:]) if request.POST['comment'] else None
     content = request.POST['content'] if request.POST['content'] else None
     return add_comment_generic(request, ThemeComments, content, theme, comment)
 
