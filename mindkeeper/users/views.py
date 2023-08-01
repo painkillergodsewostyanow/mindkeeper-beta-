@@ -32,6 +32,9 @@ class UserStatisticInContextMixin:
         context['total_comments_verb'] = Themes.count_user_s_comment_placed(self.request.user) + \
                                          Cards.count_user_s_comment_placed(self.request.user)
 
+        context['subscribers'] = self.get_object().get_user_s_subscribers.count()
+        context['subscribes'] = self.get_object().get_user_s_subscribes.count()
+
         return context
 
 
@@ -41,11 +44,13 @@ class UserDetailView(UserStatisticInContextMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(UserDetailView, self).get_context_data(**kwargs)
-        context['super_theme'] = Themes.get_super_themes_by_user(self.request.user).filter(is_private=False)
-        context['super_card'] = Cards.get_super_cards_by_user(self.request.user).filter(is_private=False)
+        context['super_theme'] = Themes.get_super_themes_by_user(self.get_object()).filter(is_private=False)
+        context['super_card'] = Cards.get_super_cards_by_user(self.get_object()).filter(is_private=False)
+        context['is_request_user_subscribed'] = self.get_object().is_user_subscribed(self.request.user)
         # TODO(Самое популярное)
 
         return context
+
 
 class UserUpdateView(UserStatisticInContextMixin, UpdateView, LoginRequiredMixin):
     model = User

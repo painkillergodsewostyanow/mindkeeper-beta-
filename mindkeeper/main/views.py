@@ -274,6 +274,8 @@ def delete_comment_from_card(request, comment_pk):
     for comment in obj.get_sub_comments:
         json_comments.append({'pk': comment.pk})
 
+    print(json_comments)
+
     return delete_generic(request, obj, json_comments)
 
 
@@ -282,7 +284,7 @@ def delete_comment_from_theme(request, comment_pk):
 
     json_comments = []
     for comment in obj.get_sub_comments:
-        json_comments.append({'pk': comment.pk})
+        json_comments.append({'pk': comment.pk})    
 
     return delete_generic(request, obj, json_comments)
 

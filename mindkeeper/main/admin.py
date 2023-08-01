@@ -20,3 +20,13 @@ class CardAccessInline(admin.TabularInline):
 class ThemeAccessInline(admin.TabularInline):
     model = ThemeAccess
     extra = 0
+
+
+class CardCommentsInline(admin.TabularInline):
+    model = CardComments
+    extra = 0
+
+
+class ThemeCommentsInline(admin.TabularInline):
+    model = ThemeComments
+    extra = 0

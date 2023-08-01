@@ -12,7 +12,7 @@
 
 <div class="container">
     {% if father_theme %}
-        {%if father_theme.sub_theme_to%}
+        {% if father_theme.sub_theme_to %}
             <div>
                 <a href="{% url 'main:open_theme' father_theme.sub_theme_to.pk %}"><- {{father_theme.sub_theme_to.title}}</a>
             </div>

@@ -1,21 +1,7 @@
 from django.db import models
-from PIL import Image
 from users.models import User
 from django_cleanup import cleanup
-
-
-class ResizeOnSaveMixin:
-    max_height = 800
-    max_weight = 600
-    resize_fields = () # TODO()
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        if self.image:
-            image = Image.open(self.image.path)
-            if image.height > self.max_height or image.width > self.max_weight:
-                image.thumbnail((self.max_height, self.max_weight))
-                image.save(self.image.path)
+from .mixins import ResizeImageOnSaveMixin, CompressImageOnSaveMixin
 
 
 class CountableMixin:
@@ -50,7 +36,8 @@ class CountStrategy:
 
 
 @cleanup.select
-class Themes(ResizeOnSaveMixin, CountableMixin, models.Model):
+class Themes(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, models.Model):
+    quality = 40
     image = models.ImageField(upload_to="themes_image", blank=True)
     is_private = models.BooleanField(default=False)
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Автор")
@@ -125,7 +112,8 @@ class Themes(ResizeOnSaveMixin, CountableMixin, models.Model):
 
 
 @cleanup.select
-class Cards(ResizeOnSaveMixin, CountableMixin, models.Model):
+class Cards(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, models.Model):
+    quality = 40
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Автор")
     image = models.ImageField(upload_to="card_image", blank=True)
     is_private = models.BooleanField(default=False)
@@ -246,10 +234,10 @@ class Comments(models.Model):
 
     @staticmethod
     def parse_comments_tree(parent, model):
+        print(parent.content)
         answer = [parent]
-        if len(model.objects.filter(sub_comment_to=parent)) > 0:
-            for sub_comment in model.objects.filter(sub_comment_to=parent):
-                return answer + model.parse_comments_tree(sub_comment, model)
+        for sub_comment in model.objects.filter(sub_comment_to=parent):
+            return answer + model.parse_comments_tree(sub_comment, model)
 
         return answer
 

@@ -15,10 +15,16 @@ class User(AbstractUser):
 
     @property
     def get_user_s_subscribes(self):
-        users = []
-        for subscribe in Subscribes.objects.filter(subscriber=self).values('author'):
-            users.append(subscribe['author'])
-        return users
+        return Subscribes.objects.filter(subscriber=self)
+
+    @property
+    def get_user_s_subscribers(self):
+        return Subscribes.objects.filter(author=self)
+
+    def is_user_subscribed(self, user):
+        if Subscribes.objects.filter(author=self, subscriber=user):
+            return True
+        return False
 
 
 class Subscribes(models.Model):

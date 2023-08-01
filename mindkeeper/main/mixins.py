@@ -1,32 +1,81 @@
-from main.models import Themes, Cards
+from django.db.models.fields.files import ImageFieldFile
+from django.db import models
+from PIL import Image
 
 
-class CountableMixin:
-    @staticmethod
-    def count_received(a, countable, user):
-        if isinstance(a, Themes):
-            CountStrategy.count_received_theme(Themes, countable, user)
-        if isinstance(a, Cards):
-            CountStrategy.count_received_card(Cards, countable, user)
+class ResizeImageOnSaveMixin:
+    max_height = 800
+    max_weight = 600
+    resize_image_fields = []
 
-    @staticmethod
-    def count_placed(countable, user):
-        return countable.objects.filter(user=user).count()
+    def init_resize_image_fields(self):
+        temp = []
+        if len(self.resize_image_fields) == 0:
+            for field in self._meta.get_fields():
+                if isinstance(field, models.ImageField):
+                    str_field_repr = str(field)
+                    field_name = str_field_repr[str_field_repr.rfind('.') + 1:]
+                    field = getattr(self, field_name)
+                    temp.append(field)
+
+        else:
+            for field_name in self.resize_image_fields:
+                field = getattr(self, field_name, False)
+
+                if field is False:
+                    raise TypeError(f'Поля {field_name} несуществует')
+
+                if not isinstance(field, ImageFieldFile):
+                    raise TypeError(f'Введенное вами поле {field_name} не являеться ImageField')
+
+                temp.append(field)
+
+        return temp
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        resize_fields = self.init_resize_image_fields()
+        for field in resize_fields:
+            if field:
+                image = Image.open(field.path)
+                if image.height > self.max_height or image.width > self.max_weight:
+                    image.thumbnail((self.max_height, self.max_weight))
+                    image.save(field.path)
 
 
-class CountStrategy:
-    @staticmethod
-    def count_received_theme(a, countable, user):
-        total = 0
-        for obj in a.objects.filter(user=user):
-            total += countable.objects.filter(theme=obj).count()
+class CompressImageOnSaveMixin:
+    quality = 70
+    compress_image_fields = []
 
-        return total
+    def init_compress_image_fields(self):
+        temp = []
+        if len(self.resize_image_fields) == 0:
+            for field in self._meta.get_fields():
+                if isinstance(field, models.ImageField):
+                    str_field_repr = str(field)
+                    field_name = str_field_repr[str_field_repr.rfind('.') + 1:]
+                    field = getattr(self, field_name)
+                    temp.append(field)
 
-    @classmethod
-    def count_received_card(cls, countable, user):
-        total = 0
-        for obj in cls.objects.filter(user=user):
-            total += countable.objects.filter(card=obj).count()
+        else:
+            for field_name in self.resize_image_fields:
+                field = getattr(self, field_name, False)
 
-        return total
+                if field is False:
+                    raise TypeError(f'Поля {field_name} несуществует')
+
+                if not isinstance(field, ImageFieldFile):
+                    raise TypeError(f'Введенное вами поле {field_name} не являеться ImageField')
+
+                temp.append(field)
+
+        return temp
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        compress_fields = self.init_compress_image_fields()
+        for field in compress_fields:
+            if field:
+                image = Image.open(field.path)
+                image = image.convert('RGB')
+                image.save(fp=field.path, format='JPEG', quality=self.quality)
