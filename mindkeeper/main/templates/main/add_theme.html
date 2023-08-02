@@ -1,9 +1,23 @@
 {% extends "main/base.html" %}
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/forms.css' %}">
+{% endblock %}
 {% block content %}
 <form action="{% url 'main:add_theme' %}" method="POST" enctype="multipart/form-data">
     {% csrf_token %}
     <input type="hidden" name="theme" value="{{theme}}">
-    {{form.as_p}}
+    <div class="upload-container">
+
+            {{form.image}}
+            <label for="id_image">
+            <div class="image_place">
+                <img id="upload-image" src="{% static 'img/file_input.png' %}" alt="">
+            </div>
+            </label>
+    </div>
+    сделать приватноя ? {{form.is_private}}
+    название {{form.title}}
     <button TYPE="submit">{{action}}</button>
 </form>
 {% endblock %}

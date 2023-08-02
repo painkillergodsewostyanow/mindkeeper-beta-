@@ -1,13 +1,15 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from main.mixins import ResizeImageOnSaveMixin, CompressImageOnSaveMixin
 
 
 class User(AbstractUser):
     image = models.ImageField(upload_to='user_images', verbose_name="Аватарка", blank=True)
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=15, blank=True)
-    if_private = models.BooleanField(default=False, verbose_name='Приватный ?')
+    is_private = models.BooleanField(default=False, verbose_name='Приватный ?')
     is_email_verified = models.BooleanField(default=False, verbose_name='Почта подтверденна?')
+    is_receive_notifications = models.BooleanField(default=True, verbose_name='Подписан на рассылку?')
 
     class Meta:
         verbose_name = 'Пользователь'

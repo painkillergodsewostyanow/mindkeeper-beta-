@@ -234,7 +234,7 @@ function render_add_comment(data){
             {{#if ${request_user} '!=' comment_json.user.pk }}
             <div><a href='${host}users/profile/{{comment_json.user.pk}}'>{{comment_json.user.username}}</a></div>
             {{/if}}
-            <div>Ответ на <a href="#{{comment_json.sub_comment_to.pk}}">коментарий</a></div>
+            <div>Ответ на <a href="#comment_{{comment_json.sub_comment_to.pk}}">коментарий</a></div>
             Дорогой, <a href='${host}users/profile/{{comment_json.user.pk}}'>{{comment_json.sub_comment_to.user}}</a>
             <span class="content">{{comment_json.content}}</span>
             <div class="answer_trigger">
@@ -287,15 +287,8 @@ function render_add_comment(data){
 }
 function render_del_comment(data) {
 
-    deleted_comments = data.deleted_objs
-    deleted_comment_id = []
-    deleted_comments.forEach(function(i){ deleted_comment_id.push(`comment_${i.pk}`)})
-
-    for (i=0; i<deleted_comment_id.length; i++){
-
-        document.getElementById(deleted_comment_id[i]).remove()
-
-    }
+    deleted_comment_id = data.deleted_objs.pk
+    document.getElementById(`comment_${deleted_comment_id}`).remove()
 
 }
 

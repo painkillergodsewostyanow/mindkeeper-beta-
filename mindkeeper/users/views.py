@@ -1,19 +1,22 @@
 from django.contrib.auth import logout
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.forms import AuthenticationForm
+from main.tasks import send_notification
 from django.shortcuts import redirect, HttpResponseRedirect
 from django.urls import reverse_lazy, reverse
 from django.views.generic import CreateView, UpdateView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from .forms import RegisterUserForm
+from .forms import UserForm, UserUpdateForm
 from main.models import Themes, Cards
 from users.models import Subscribes, User
+from django.conf import settings
 
 
 class UserStatisticInContextMixin:
     def get_context_data(self, **kwargs):
         context = super(UserStatisticInContextMixin, self).get_context_data(**kwargs)
+
         context['total_likes_received'] = Themes.count_user_s_likes_received(self.request.user) + \
                                           Cards.count_user_s_likes_received(self.request.user)
 
@@ -53,14 +56,7 @@ class UserDetailView(UserStatisticInContextMixin, DetailView):
 
 
 class UserUpdateView(UserStatisticInContextMixin, UpdateView, LoginRequiredMixin):
-    model = User
-    fields = (
-        'image',
-        'username',
-        'email',
-        'phone_number',
-        'if_private'
-    )
+    form_class = UserUpdateForm
     template_name = 'users/my_profile.html'
 
     def get_object(self, queryset=None):
@@ -86,7 +82,7 @@ def logout_user(request):
 class RegistrationUser(CreateView):
     model = User
     template_name = 'users/registration/reg.html'
-    form_class = RegisterUserForm
+    form_class = UserForm
     success_url = reverse_lazy('users:login')
 
 
@@ -100,8 +96,23 @@ def subscribe(request, author_pk):
     if subscribe:
         return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
+    if author.is_receive_notifications:
+        email_data = {
+
+            'subject': f'Пользователь {request.user.username} подписался на ваши обновления...',
+            'recipient_list': [author.email],
+            'from_email': settings.EMAIL_HOST_USER,
+            'message': f'Пользователь {request.user.username} подписался на ваши обновления...',
+
+        }
+    else:
+        email_data = None
+
+    send_notification.delay(email_data)
+
     Subscribes.objects.create(author=author, subscriber=request.user)
     return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
 
 # TODO(AJAX)
 @login_required

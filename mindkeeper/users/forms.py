@@ -1,8 +1,21 @@
 from django.contrib.auth.forms import UserCreationForm
 from .models import User
+from django import forms
 
 
-class RegisterUserForm(UserCreationForm):
+class UserForm(UserCreationForm):
     class Meta:
         model = User
-        fields = ('image', 'username', 'email', 'phone_number', 'if_private')
+        widgets = {
+            'image': forms.FileInput()
+        }
+        fields = ('image', 'username', 'email', 'phone_number', 'is_private', 'is_receive_notifications')
+
+
+class UserUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        widgets = {
+            'image': forms.FileInput()
+        }
+        fields = ('image', 'username', 'email', 'phone_number', 'is_private', 'is_receive_notifications')

@@ -230,33 +230,15 @@ class Comments(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     time_created = models.TimeField(auto_now_add=True)
-    sub_comment_to = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True,)
-
-    @staticmethod
-    def parse_comments_tree(parent, model):
-        print(parent.content)
-        answer = [parent]
-        for sub_comment in model.objects.filter(sub_comment_to=parent):
-            return answer + model.parse_comments_tree(sub_comment, model)
-
-        return answer
+    sub_comment_to = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True,)
 
 
 class ThemeComments(Comments):
     obj = models.ForeignKey(Themes, on_delete=models.CASCADE)
 
-    @property
-    def get_sub_comments(self):
-        return ThemeComments.parse_comments_tree(self, ThemeComments)
-
 
 class CardComments(Comments):
     obj = models.ForeignKey(Cards, on_delete=models.CASCADE)
-
-    @property
-    def get_sub_comments(self):
-        return ThemeComments.parse_comments_tree(self, CardComments)
-
 
 # class Notifications(models.Model):
 #     subscriber = models.ForeignKey(User, on_delete=models.CASCADE)

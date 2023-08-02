@@ -2,7 +2,7 @@
 
 {% load static %}
 {% block css %}
-    <link rel="stylesheet" href="{% static 'css/add_forms.css' %}">
+<link rel="stylesheet" href="{% static 'css/forms.css' %}">
 {% endblock %}
 {% block content %}
 <form action="{% url 'main:add_card' %}" method="POST" enctype="multipart/form-data">
@@ -13,9 +13,9 @@
 
             {{form.image}}
             <label for="id_image">
-            <div class="image_place">
-                <img id="upload-image" src="{% static 'img/file_input.png' %}" alt="">
-            </div>
+                <div class="image_place">
+                    <img id="upload-image" src="{% static 'img/file_input.png' %}" alt="">
+                </div>
             </label>
         </div>
         <div class="title">

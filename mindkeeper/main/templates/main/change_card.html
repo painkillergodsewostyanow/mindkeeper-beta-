@@ -2,7 +2,7 @@
 
 {% load static %}
 {% block css %}
-    <link rel="stylesheet" href="{% static 'css/add_forms.css' %}">
+<link rel="stylesheet" href="{% static 'css/forms.css' %}">
 {% endblock %}
 {% block content %}
 <form action="" method="POST" enctype="multipart/form-data">
@@ -10,7 +10,6 @@
     <input type="hidden" name="theme" value="{{theme}}">
     <div class="flex_wrapp">
         <div class="upload-container">
-
             {{form.image}}
             <label for="id_image">
             <div class="image_place">

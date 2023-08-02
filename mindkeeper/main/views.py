@@ -5,7 +5,10 @@ from django.views.generic import TemplateView, UpdateView
 from django.shortcuts import render, HttpResponseRedirect, redirect
 from .forms import *
 from django.urls import reverse
+from django.core.mail import send_mail
 from .scripts import check_access, ajax_login_required
+from django.conf import settings
+from main.tasks import send_notification
 
 
 class IndexTemplateView(TemplateView):
@@ -174,7 +177,20 @@ def add_card(request):
         title=request.POST['title'], content=request.POST['content']
     )
 
-    # TODO(Уведомить подписчиков)
+    if request.user.get_user_s_subscribers:
+        subscribers = request.user.get_user_s_subscribers
+        subscribers_email = [sub.subscriber.email for sub in subscribers if sub.subscriber.is_receive_notifications]
+
+        email_data = {
+            'subject': f'У {request.user.username} новая карточка! {request.POST["title"]}',
+            'recipient_list': subscribers_email,
+            'from_email': settings.EMAIL_HOST_USER,
+            'message': f'У {request.user.username} новая карточка! {request.POST["title"]}\n'
+                       f'это сообщение пришло вам так как вы подписанны на {request.user.username}\n'
+                       f'если вы хотите отменить рассылку #TODO()'
+        }
+
+        send_notification.delay(email_data)
 
     return redirect(reverse('main:open_card', kwargs={'card': card.pk}))
 
@@ -193,7 +209,20 @@ def add_theme(request):
         sub_theme_to=theme
     )
 
-    # TODO(Уведомить подписчиков)
+    if request.user.get_user_s_subscribers:
+        subscribers = request.user.get_user_s_subscribers
+        subscribers_email = [sub.subscriber.email for sub in subscribers if sub.subscriber.is_receive_notifications]
+
+        email_data = {
+            'subject': f'У {request.user.username} новая тема! {request.POST["title"]}',
+            'recipient_list': subscribers_email,
+            'from_email': settings.EMAIL_HOST_USER,
+            'message': f'У {request.user.username} новая тема! {request.POST["title"]}\n'
+                       f'это сообщение пришло вам так как вы подписанны на {request.user.username}\n'
+                       f'если вы хотите отменить рассылку #TODO()'
+        }
+
+        send_notification.delay(email_data)
 
     return redirect(reverse('main:open_theme', kwargs={'theme': theme.pk}))
 
@@ -269,60 +298,83 @@ def delete_card(request, card_pk):
 
 def delete_comment_from_card(request, comment_pk):
     obj = CardComments.objects.get(pk=comment_pk)
-
-    json_comments = []
-    for comment in obj.get_sub_comments:
-        json_comments.append({'pk': comment.pk})
-
-    print(json_comments)
-
-    return delete_generic(request, obj, json_comments)
+    return delete_generic(request, obj, {'pk': obj.pk})
 
 
 def delete_comment_from_theme(request, comment_pk):
     obj = ThemeComments.objects.get(pk=comment_pk)
-
-    json_comments = []
-    for comment in obj.get_sub_comments:
-        json_comments.append({'pk': comment.pk})    
-
-    return delete_generic(request, obj, json_comments)
+    return delete_generic(request, obj, {'pk': obj.pk})
 
 
 @ajax_login_required
-def like_generic(request, obj, model):
+def like_generic(request, obj, model, email_data=None):
     like_obj = model.objects.filter(user=request.user, obj=obj).first()
     like_counter = model.objects.filter(obj=obj)
 
     if like_obj:
         like_obj.delete()
-        print('Удаление')
         return JsonResponse({'like': like_counter.count()}, safe=False)
 
-    model.objects.create(user=request.user, obj=obj)
-    print('создание')
+    if email_data:
+        if request.user.email in email_data['recipient_list']:
+            email_data['recipient_list'].remove(obj.user.email)
 
+        send_notification.delay(email_data)
+
+    model.objects.create(user=request.user, obj=obj)
     return JsonResponse({'like': like_counter.count()}, safe=False)
 
 
 def like_card(request, card_pk):
     obj = Cards.objects.filter(pk=card_pk).first()
-    return like_generic(request, obj, CardLikes)
+
+    # TODO(celery)
+    if obj.user.is_receive_notifications:
+        email_data = {
+
+            'subject': f"ваша карточка {obj.title} понравилась {request.user.username}",
+            'recipient_list': [obj.user.email],
+            'from_email': settings.EMAIL_HOST_USER,
+            'message': f"ваша карточка {obj.title} понравилась {request.user.username}"
+
+        }
+    else:
+        email_data = None
+
+
+    return like_generic(request, obj, CardLikes, email_data)
 
 
 def like_theme(request, theme_pk):
     obj = Themes.objects.filter(pk=theme_pk).first()
-    return like_generic(request, obj, ThemeLikes)
+
+    if obj.user.is_receive_notifications:
+        email_data = {
+
+            'subject': f"ваша тема {obj.title} понравилась {request.user.username}",
+            'recipient_list': [obj.user.email],
+            'from_email': settings.EMAIL_HOST_USER,
+            'message': f"ваша карточка {obj.title} понравилась {request.user.username}"
+
+        }
+    else:
+        email_data = None
+
+    return like_generic(request, obj, ThemeLikes, email_data)
 
 
 @ajax_login_required
-def add_comment_generic(request, model, content, obj, sub_comment_to=None):
+def add_comment_generic(request, model, content, obj, sub_comment_to=None, email_data=None):
     if not content:
         print('Коментарий путсым быть не может')
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('main:storage')))
 
-    # if not request.user.is_authenticated:
-    #     return JsonResponse({"authenticated": False, "login_url": settings.LOGIN_URL}, safe=False)
+    # TODO(celery)
+    if email_data:
+        if request.user.email in email_data['recipient_list']:
+            email_data['recipient_list'].remove(obj.user.email)
+
+        send_notification.delay(email_data)
 
     comment = model.objects.create(user=request.user, content=content, obj=obj, sub_comment_to=sub_comment_to)
 
@@ -339,27 +391,72 @@ def add_comment_generic(request, model, content, obj, sub_comment_to=None):
 def add_comment_to_theme(request):
     theme = Themes.objects.get(pk=request.POST['theme']) if request.POST.get('theme') else None
     content = request.POST['content'] if request.POST['content'] else None
-    return add_comment_generic(request, ThemeComments, content, theme)
+    if theme.user.is_receive_notifications:
+        email_data = {
+            'subject': f'Пользователь {request.user.username} оставил коментарий вашей теме {theme.title}...',
+            'recipient_list': [theme.user.email],
+            'from_email': settings.EMAIL_HOST_USER,
+            'message': f'Пользователь {request.user.username} оставил коментарий вашей карточке {theme.title}... \n'
+                       f'{content}',
+        }
+    else:
+        email_data = None
+
+
+    return add_comment_generic(request, ThemeComments, content, theme, email_data=email_data)
 
 
 def add_comment_to_card(request):
     card = Cards.objects.get(pk=request.POST['card']) if request.POST.get('card') else None
     content = request.POST['content'] if request.POST['content'] else None
-    return add_comment_generic(request, CardComments, content, card)
+    email_data = None
+    if card.user.is_receive_notifications:
+        email_data = {
+            'subject': f'Пользователь {request.user.username} оставил коментарий вашей карточке {card.title}...',
+            'recipient_list': [card.user.email],
+            'from_email': settings.EMAIL_HOST_USER,
+            'message': f'Пользователь {request.user.username} оставил коментарий вашей карточке {card.title}... \n'
+                       f'{content}',
+        }
+
+    return add_comment_generic(request, CardComments, content, card, email_data=email_data)
 
 
 def add_comment_to_card_comment(request):
     card = Cards.objects.get(pk=request.POST['obj']) if request.POST.get('obj') else None
     comment = CardComments.objects.get(pk=request.POST['comment'][8:]) if request.POST['comment'] else None
     content = request.POST['content'] if request.POST['content'] else None
-    return add_comment_generic(request, CardComments, content, card, comment)
+    if comment.user.is_receive_notifications:
+        email_data = {
+            'subject': f'Пользователь {request.user.username} ответил на ваш коментарий {comment.content[:10]}...',
+            'recipient_list': [comment.user.email],
+            'from_email': settings.EMAIL_HOST_USER,
+            'message': f'Пользователь {request.user.username} ответил на ваш коментарий {comment.content[:10]}... \n'
+                       f'{content}',
+        }
+    else:
+        email_data = None
+
+    return add_comment_generic(request, CardComments, content, card, comment, email_data=email_data)
 
 
 def add_comment_to_theme_comment(request):
     theme = Themes.objects.get(pk=request.POST['obj']) if request.POST.get('obj') else None
     comment = ThemeComments.objects.get(pk=request.POST['comment'][8:]) if request.POST['comment'] else None
     content = request.POST['content'] if request.POST['content'] else None
-    return add_comment_generic(request, ThemeComments, content, theme, comment)
+    if comment.user.is_receive_notifications:
+        email_data = {
+            'subject': f'Пользователь {request.user.username} ответил на ваш коментарий {comment.content[:10]}...',
+            'recipient_list': [comment.user.email],
+            'from_email': settings.EMAIL_HOST_USER,
+            'message': f'Пользователь {request.user.username} ответил на ваш коментарий {comment.content[:10]}... \n'
+                       f'{content}',
+        }
+    else:
+        email_data = None
+
+
+    return add_comment_generic(request, ThemeComments, content, theme, comment, email_data=email_data)
 
 
 # SEARCH
@@ -377,11 +474,13 @@ def global_search(request):
                 'massage': "По данному запросу совпадени не найденно"
 
             }
+
         else:
             context = {
                 'themes': themes,
                 'cards': cards
             }
+
         return render(request, 'main/global_search.html', context)
 
     else:
