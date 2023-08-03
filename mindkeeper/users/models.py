@@ -4,6 +4,7 @@ from main.mixins import ResizeImageOnSaveMixin, CompressImageOnSaveMixin
 
 
 class User(AbstractUser):
+    #
     image = models.ImageField(upload_to='user_images', verbose_name="Аватарка", blank=True)
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=15, blank=True)

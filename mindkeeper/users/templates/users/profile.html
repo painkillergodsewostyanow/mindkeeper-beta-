@@ -2,97 +2,129 @@
 {% load static %}
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/catalog_style.css' %}">
+<link rel="stylesheet" href="{% static 'css/profile_style.css' %}">
 {% endblock %}
 {% block content %}
-    {% if object.image %}
-        <img src="{{object.image.url}}" alt="">
-    {% else %}
+
+{% if object.is_private %}
+<div>Приватный</div>
+{% else %}
+<div class="main-container">
+    <div class="flex_wrapper">
+        {% if object.image %}
+        <div class="profile_image">
+            <img src="{{object.image.url}}" alt="">
+        </div>
+        {% else %}
         <img src="" alt="НЕТУ">
-    {% endif %}
-    <div>
-        {{object.username}}
-    </div>
-    <div>
-        {{object.email}}
-    </div>
-    <div>
-        <div>ПОЛУЧЕННО:</div>
-        Лайков: {{total_likes_received}}
-        Просмотров: {{total_views_received}}
-        Комментариев: {{total_comments_received}}
-        <div>ПОСТАВЛЕННО:</div>
-        Лайков: {{total_likes_verb}}
-        Просмотров: {{total_views_verb}}
-        Комментариев: {{total_comments_verb}}
+        {% endif %}
+        <div class="info">
+            <div class="name">
+                {{object.username}}
+            </div>
+
+            <div class="email">
+                {{object.email}}
+            </div>
+            <div class="statistic">
+                Статистика:
+                <div>полученно:
+                    Лайков: {{total_likes_received}}
+                    Просмотров: {{total_views_received}}
+                    Комментариев: {{total_comments_received}}
+                </div>
+                <div>поставленно:
+                    Лайков: {{total_likes_verb}}
+                    Просмотров: {{total_views_verb}}
+                    Комментариев: {{total_comments_verb}}
+                </div>
+                <div class="">
+                    Подписчики: {{subscribers_count}}
+                    Подписки: {{subscribes_count}}
+                </div>
+
+            </div>
+        </div>
+        <div class="subscribers_prev">
+            {% for subscriber in subscribers_prev %}
+            <div>{{subscriber.subscriber.username}}</div>
+            {% endfor %}
+        </div>
+        <div class="subscribes_prev">
+            {% for subscribes in subscribes_prev %}
+            <div>{{subscribes.author.username}}</div>
+            {% endfor %}
+        </div>
+
     </div>
 
-    {% if is_request_user_subscribed %}
-        <div><a href="{% url 'users:unsubscribe' object.pk %}">Отписаться</a></div>
-    {% else %}
-        <div><a href="{% url 'users:subscribe' object.pk %}">Подписаться</a></div>
-    {% endif %}
-
-<div>
-    Подписчики: {{subscribers}}
-    Подписки: {{subscribes}}
+        {% if is_request_user_subscribed %}
+        <a href="{% url 'users:unsubscribe' object.pk %}">
+            <div class="sub_button">Отписаться</div>
+        </a>
+        {% else %}
+        <a href="{% url 'users:subscribe' object.pk %}">
+            <div class="sub_button">Подписаться</div>
+        </a>
+        {% endif %}
+    <div>
+        <div class="container">
+            {% if super_theme %}
+            <div class="label">Темы</div>
+            {% endif %}
+            <ul class="catalog_place">
+                {% for theme in super_theme %}
+                <li class="wrapper">
+                    <a href="{% url 'main:open_theme' theme.pk %}">
+                        <div id="{{theme.pk}}" class="card">
+                            {% if theme.image %}
+                            <div class="photo">
+                                <img src="{{theme.image.url}}" alt="">
+                            </div>
+                            {% else %}
+                            <div class="photo">
+                                <img src="" alt="">
+                            </div>
+                            {% endif %}
+                            <p class="object_title">{{theme.title}}</p>
+                            <span class="views">{{theme.views}}</span>
+                            <span class="likes">{{theme.likes}}</span>
+                            <span class="count_comments">{{theme.count_comments}}</span>
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="container">
+            {% if super_card %}
+            <div class="label">Карточки</div>
+            {% endif %}
+            <ul class="catalog_place">
+                {% for card in super_card %}
+                <li class="wrapper">
+                    <a href="{% url 'main:open_card' card.pk %}">
+                        <div id="{{card.pk}}" class="card">
+                            {% if card.image %}
+                            <div class="photo">
+                                <img src="{{ card.image.url }}" alt="">
+                            </div>
+                            {% else %}
+                            <div class="photo">
+                                <img src="#" alt="">
+                            </div>
+                            {% endif %}
+                            <p class="object_title">{{card.title}}</p>
+                            <span class="views">{{card.views}}</span>
+                            <span class="likes">{{card.likes}}</span>
+                            <span class="count_comments">{{card.count_comments}}</span>
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
 </div>
-
-<div>
-    <div class="container">
-    {% if super_theme %}
-    <div class="label">Темы</div>
-    {% endif %}
-    <ul class="catalog_place">
-        {% for theme in super_theme %}
-            <li class="wrapper">
-                <a href="{% url 'main:open_theme' theme.pk %}">
-                    <div id="{{theme.pk}}" class="card">
-                        {% if theme.image %}
-                        <div class="photo">
-                            <img src="{{theme.image.url}}" alt="">
-                        </div>
-                        {% else %}
-                        <div class="photo">
-                            <img src="" alt="">
-                        </div>
-                        {% endif %}
-                        <p class="object_title">{{theme.title}}</p>
-                        <span class="views">{{theme.views}}</span>
-                        <span class="likes">{{theme.likes}}</span>
-                        <span class="count_comments">{{theme.count_comments}}</span>
-                    </div>
-                </a>
-            </li>
-        {% endfor %}
-    </ul>
-    </div>
-    <div class="container">
-    {% if super_card %}
-    <div class="label">Карточки</div>
-    {% endif %}
-    <ul class="catalog_place">
-        {% for card in super_card %}
-            <li class="wrapper">
-                <a href="{% url 'main:open_card' card.pk %}">
-                    <div id="{{card.pk}}" class="card">
-                        {% if card.image %}
-                        <div class="photo">
-                            <img src="{{ card.image.url }}" alt="">
-                        </div>
-                        {% else %}
-                        <div class="photo">
-                            <img src="#" alt="">
-                        </div>
-                        {% endif %}
-                        <p class="object_title">{{card.title}}</p>
-                        <span class="views">{{card.views}}</span>
-                        <span class="likes">{{card.likes}}</span>
-                        <span class="count_comments">{{card.count_comments}}</span>
-                    </div>
-                </a>
-            </li>
-        {% endfor %}
-    </ul>
-    </div>
-</div>
+{% endif %}
 {% endblock %}

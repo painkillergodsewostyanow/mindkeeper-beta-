@@ -35,8 +35,10 @@ class UserStatisticInContextMixin:
         context['total_comments_verb'] = Themes.count_user_s_comment_placed(self.request.user) + \
                                          Cards.count_user_s_comment_placed(self.request.user)
 
-        context['subscribers'] = self.get_object().get_user_s_subscribers.count()
-        context['subscribes'] = self.get_object().get_user_s_subscribes.count()
+        context['subscribers_count'] = self.get_object().get_user_s_subscribers.count()
+        context['subscribes_count'] = self.get_object().get_user_s_subscribes.count()
+        context['subscribers_prev'] = self.get_object().get_user_s_subscribers[:10]# TODO(отсортировать по популярности)
+        context['subscribes_prev'] = self.get_object().get_user_s_subscribers[:10]
 
         return context
 
