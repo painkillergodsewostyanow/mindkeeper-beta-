@@ -4,19 +4,19 @@ from django.conf import settings
 
 def check_access(user, to=None,  users_with_access=None):
     if getattr(to, 'obj', False):
-        if to.obj.user != user:
-            return False
-        return True
-
-    if to:
-        if to.user != user:
-            return False
+        if to.obj.user == user:
+            return True
+        return False
 
     if users_with_access:
-        if user not in users_with_access:
-            return False
+        if user in users_with_access:
+            return True
 
-    return True
+    if to :
+        if to.user == user:
+            return True
+
+    return False
 
 
 def ajax_login_required(func):

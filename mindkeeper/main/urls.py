@@ -3,7 +3,6 @@ from django.views.decorators.cache import cache_page
 
 from .views import *
 
-
 app_name = "main"
 
 urlpatterns = [
@@ -34,7 +33,14 @@ urlpatterns = [
     path('storage/<int:comment_pk>/del_comment_from_card', delete_comment_from_card, name='del_comment_from_card'),
     path('storage/<int:comment_pk>/del_comment_from_theme', delete_comment_from_theme, name='del_comment_from_theme'),
     path('storage/edit_card_comment/<int:comment_pk>', edit_card_comment, name="edit_card_comment"),
-    path('storage/edit_theme_comment/<int:comment_pk>', edit_theme_comment, name="edit_theme_comment")
+    path('storage/edit_theme_comment/<int:comment_pk>', edit_theme_comment, name="edit_theme_comment"),
+    path('storage/request_access_to_theme/<int:user_pk>/to/<int:theme_pk>', request_access_to_theme,
+         name="request_access_to_theme"),
+    path('storage/request_access_to_card/<int:user_pk>/to/<int:card_pk>', request_access_to_card,
+         name="request_access_to_card"),
+    path('storage/give_access_to_theme/<int:user_pk>/to/<int:theme_pk>', give_access_to_theme,
+         name="give_access_to_theme"),
+    path('storage/give_access_to_card/<int:user_pk>/to/<int:card_pk>', give_access_to_card,
+         name="give_access_to_card"),
+
 ]
-
-

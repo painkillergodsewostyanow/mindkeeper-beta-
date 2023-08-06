@@ -5,17 +5,19 @@
 <input id="is_theme" type="hidden" value="false">
 
 {% if card.theme %}
-<a href="{% url 'main:open_theme' card.theme.pk %}"><- {{card.theme.title}}</a>
+<a href="{% url 'main:open_theme' card.theme.pk %}"> <- {{card.theme.title}}</a>
 {% else %}
 <a href="{% url 'main:storage' %}"><- хранилище</a>
 {% endif %}
-
+    {% if request_access_link %}
+    <div id="message">
+        У вас нет доступа,
+        <a href="{{request_access_link}}">запросить</a>
+    </div>
+    {% else %}
 {% if request.user == card.user %}
 <div><a href="{% url 'main:edit_card' card.pk %}">Изменить</a></div>
 {% endif %}
-<div>
-    {{message}}
-</div>
 <div>
     {{card.title}}
 </div>
@@ -111,5 +113,6 @@
 <script src="{% static 'js/comments.js' %}"></script>
 <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
 <script src="{% static 'js/csrf_token.js' %}"></script>
+{% endif %}
 {% endblock %}
 

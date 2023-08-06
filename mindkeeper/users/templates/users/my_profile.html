@@ -2,31 +2,63 @@
 {% load static %}
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+<link rel="stylesheet" href="{% static 'css/profile_style.css' %}">
 {% endblock %}
 {% block content %}
+<div class="main-container">
 <form action="{% url 'users:my_profile' %}" method="POST" enctype="multipart/form-data">
     {% csrf_token %}
-    <div>{{form.errors}}</div>
-    {{form.as_p}}
+        <div class="flex_wrapper">
+            <div class="profile_image">
+                {{form.image}}
+                <label for="id_image">
+                {% if object.image %}
+                <img src="{{object.image.url}}" alt="">
+                {% else %}
+                <img src="" alt="НЕТУ">
+                {% endif %}
+            </div>
+            </label>
+        <div class="info">
+            <div class="form_name">
+                {{form.username}}
+            </div>
 
+            <div class="form_email">
+                {{form.email}}
+            </div>
+            <div class="form_phone_number">
+                {{form.phone_number}}
+            </div>
+            <div class="form_is_private">
+                {{form.is_private}}Приватный ?:
+            </div>
+            <div class="form_is_receive_notifications">
+                {{form.is_receive_notifications}}Получать уведомления по почте ?:
+            </div>
+            <div class="statistic">
+                Статистика:
+                <div>полученно:
+                    Лайков: {{total_likes_received}}
+                    Просмотров: {{total_views_received}}
+                    Комментариев: {{total_comments_received}}
+                </div>
+                <div>поставленно:
+                    Лайков: {{total_likes_verb}}
+                    Просмотров: {{total_views_verb}}
+                    Комментариев: {{total_comments_verb}}
+                </div>
+                <div class="">
+                    Подписчики: {{subscribers_count}}
+                    Подписки: {{subscribes_count}}
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    {{form.errors}}
     <button type="submit">Изменить</button>
-</form>
-<div>
-    <div>ПОЛУЧЕННО:</div>
-    Лайков: {{total_likes_received}}
-    Просмотров: {{total_views_received}}
-    Комментариев: {{total_comments_received}}
-    <div>ПОСТАВЛЕННО:</div>
-    Лайков: {{total_likes_verb}}
-    Просмотров: {{total_views_verb}}
-    Комментариев: {{total_comments_verb}}
+<a href="{% url 'users:delete_user' %}">Удалить профиль</a>
 </div>
-<div>
-    Подписки:
-    {{subscribes}}
-
-    Подписчики:
-    {{subscribers}}
-</div>
-
 {% endblock %}

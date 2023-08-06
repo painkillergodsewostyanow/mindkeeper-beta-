@@ -72,3 +72,13 @@
     margin-left: 5vw;
 
 }
+
+.profile_image input[type=file]{
+
+     width: 0.1px;
+     height: 0.1px;
+     opacity: 0;
+     position: absolute;
+     z-index: -10;
+
+}

@@ -1,3 +1,9 @@
+input {
+    outline:none;
+    border: 1px solid transparent;
+    background: transparent;
+}
+
 .profile_image{
     min-width: 20vw;
     min-height: 20vw;
@@ -8,6 +14,8 @@
     width: 20vw;
     height: 20vw;
     margin-right: 2vw;
+    position: relative;
+    z-index: 10;
 
 }
 .profile_image img {
@@ -19,6 +27,7 @@
 }
 .main-container{
 
+    overflow: hidden;
     padding-left: 2vw;
     padding-right: 2vw;
     padding-top: 1vw;
@@ -58,5 +67,36 @@
     border-radius: 1vw;
     color: white;
     margin-top: 0.8vw;
+
+}
+
+.catalog_container{
+
+    margin-top: 4vw;
+
+}
+.form_name input{
+    width: 60vw;
+    font-size: 4vw;
+}
+.form_email input {
+    width: 60vw;
+    font-size: 2vw;
+}
+.form_phone_number{
+    width: 60vw;
+}
+
+.form_is_private input{
+
+    font-size: 1.6vw;
+    display: inline-block;
+
+}
+
+.form_is_receive_notifications input{
+
+    font-size: 1.6vw;
+    display: inline-block;
 
 }

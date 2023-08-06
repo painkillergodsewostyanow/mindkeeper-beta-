@@ -1,6 +1,6 @@
 {% extends "users/registration/base_form.html" %}
 {% block content %}
-<form method="post">
+<form action="{% url 'users:reg' %}" method="post">
     {% csrf_token %}
     {{form.as_p}}
     <button type="submit"> Войти </button>

@@ -5,7 +5,6 @@ from django.conf import settings
 
 @shared_task
 def send_notification(email_data):
-    print('task')
     send_mail(
         subject=email_data['subject'],
         recipient_list=email_data['recipient_list'],

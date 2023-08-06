@@ -11,13 +11,15 @@
 {% else %}
 <div class="main-container">
     <div class="flex_wrapper">
-        {% if object.image %}
+
         <div class="profile_image">
+            {% if object.image %}
             <img src="{{object.image.url}}" alt="">
+            {% else %}
+            <img src="" alt="НЕТУ">
+            {% endif %}
         </div>
-        {% else %}
-        <img src="" alt="НЕТУ">
-        {% endif %}
+
         <div class="info">
             <div class="name">
                 {{object.username}}
@@ -45,29 +47,18 @@
 
             </div>
         </div>
-        <div class="subscribers_prev">
-            {% for subscriber in subscribers_prev %}
-            <div>{{subscriber.subscriber.username}}</div>
-            {% endfor %}
-        </div>
-        <div class="subscribes_prev">
-            {% for subscribes in subscribes_prev %}
-            <div>{{subscribes.author.username}}</div>
-            {% endfor %}
-        </div>
-
     </div>
 
-        {% if is_request_user_subscribed %}
-        <a href="{% url 'users:unsubscribe' object.pk %}">
-            <div class="sub_button">Отписаться</div>
-        </a>
-        {% else %}
-        <a href="{% url 'users:subscribe' object.pk %}">
-            <div class="sub_button">Подписаться</div>
-        </a>
-        {% endif %}
-    <div>
+    {% if is_request_user_subscribed %}
+    <a href="{% url 'users:unsubscribe' object.pk %}">
+        <div class="sub_button">Отписаться</div>
+    </a>
+    {% else %}
+    <a href="{% url 'users:subscribe' object.pk %}">
+        <div class="sub_button">Подписаться</div>
+    </a>
+    {% endif %}
+    <div class="catalog_container">
         <div class="container">
             {% if super_theme %}
             <div class="label">Темы</div>
@@ -126,5 +117,6 @@
         </div>
     </div>
 </div>
+
 {% endif %}
 {% endblock %}
