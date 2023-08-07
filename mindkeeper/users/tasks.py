@@ -10,8 +10,7 @@ from .models import User
 
 @shared_task
 def send_verify_email(user_pk):
-    user = User.objects.get()
-
+    user = User.objects.get(pk=user_pk)
     context = {
         'domain': settings.DOMAIN_NAME,
         'uid': urlsafe_base64_encode(force_bytes(user.pk)),
@@ -22,6 +21,7 @@ def send_verify_email(user_pk):
     message = render_to_string(
         'users/registration/verify_mail.html', context
     )
+
     send_mail(
         subject=subject,
         message=message,

@@ -59,7 +59,7 @@ class Themes(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, m
     def users_with_access(self):
         lst_users_with_access = []
         for row in ThemeAccess.objects.filter(theme=self).values('user'):
-            lst_users_with_access.append(User.objects.get())
+            lst_users_with_access.append(User.objects.get(pk=row['user']))
         return lst_users_with_access
 
     @property
@@ -138,7 +138,7 @@ class Cards(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, mo
     def users_with_access(self):
         lst_users_with_access = []
         for row in CardAccess.objects.filter(card=self).values('user'):
-            lst_users_with_access.append(User.objects.get())
+            lst_users_with_access.append(User.objects.get(pk=row['user']))
         return lst_users_with_access
 
     @property

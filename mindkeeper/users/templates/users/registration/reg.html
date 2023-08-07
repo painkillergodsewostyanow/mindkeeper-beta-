@@ -3,6 +3,7 @@
 <form action="{% url 'users:reg' %}" method="post">
     {% csrf_token %}
     {{form.as_p}}
+    {{form.errors}}
     <button type="submit"> Войти </button>
 </form>
 {% endblock %}

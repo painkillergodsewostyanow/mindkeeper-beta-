@@ -124,7 +124,6 @@ INTERNAL_IPS = [
     'localhost'
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -160,6 +159,7 @@ MEDIA_URL = '/media/'
 AUTH_USER_MODEL = 'users.User'
 LOGIN_URL = reverse_lazy('users:login')
 LOGIN_REDIRECT_URL = reverse_lazy('users:login')
+AUTHENTICATION_BACKENDS = ('users.backends.AuthByUsernameOrEmailBackends',)
 
 # SUMMERNOTE
 SUMMERNOTE_CONFIG = {'width': '100%', 'height': '400px',

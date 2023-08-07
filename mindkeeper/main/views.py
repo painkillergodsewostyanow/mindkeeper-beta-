@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.views.generic import TemplateView, UpdateView
 from django.shortcuts import render, HttpResponseRedirect, redirect
 from .forms import *
@@ -76,17 +76,23 @@ def open_theme(request, theme):
     if request.user.is_authenticated:
         if not ThemeViews.objects.filter(obj=theme, user=request.user).first():
             ThemeViews.objects.create(obj=theme, user=request.user)
+    if theme.is_private:
+        if check_access(request.user, theme, theme.users_with_access):
+            context = {
+                'father_theme': Themes.objects.filter(pk=father_theme).first(),
+                "themes": Themes.objects.filter(sub_theme_to=theme),
+                "cards": Cards.objects.filter(theme=theme)
+            }
 
-    if check_access(request.user, theme, theme.users_with_access):
+        else:
+            context = {
+                'request_access_link': f'{settings.DOMAIN_NAME}{reverse_lazy("main:request_access_to_theme", kwargs={"user_pk": request.user.pk, "theme_pk": theme.pk})}'
+            }
+    else:
         context = {
             'father_theme': Themes.objects.filter(pk=father_theme).first(),
             "themes": Themes.objects.filter(sub_theme_to=theme),
             "cards": Cards.objects.filter(theme=theme)
-        }
-
-    else:
-        context = {
-            'request_access_link': f'{settings.DOMAIN_NAME}{reverse_lazy("main:request_access_to_theme", kwargs={"user_pk": request.user.pk, "theme_pk": theme.pk})}'
         }
 
     return render(request, "main/catalog.html", context)
@@ -98,13 +104,16 @@ def open_card(request, card):
         if not CardViews.objects.filter(obj=card, user=request.user).first():
             CardViews.objects.create(obj=card, user=request.user)
 
-    if check_access(request.user, card, card.users_with_access):
-        context = {'card': card}
+    if card.is_private:
+        if check_access(request.user, card, card.users_with_access):
+            context = {'card': card}
 
+        else:
+            context = {
+                'request_access_link': f'{settings.DOMAIN_NAME}{reverse_lazy("main:request_access_to_card", kwargs={"user_pk": request.user.pk, "card_pk": card.pk})}'
+            }
     else:
-        context = {
-            'request_access_link': f'{settings.DOMAIN_NAME}{reverse_lazy("main:request_access_to_card", kwargs={"user_pk": request.user.pk, "card_pk": card.pk})}'
-        }
+        context = {'card': card}
 
     return render(request, "main/card.html", context)
 
@@ -185,7 +194,7 @@ def add_card(request):
 @login_required
 def add_theme(request):
     is_private = 'is_private' in request.POST
-    theme = Themes.objects.get() if request.POST['theme'] else None
+    theme = Themes.objects.get(pk=request.POST['theme']) if request.POST['theme'] else None
     image = request.FILES.get('image')
 
     theme = Themes.objects.create(
@@ -253,7 +262,7 @@ def edit_card_comment(request, comment_pk):
 
 def edit_theme_comment(request, comment_pk):
     new_content = request.POST['content']
-    comment = ThemeComments.objects.get()
+    comment = ThemeComments.objects.get(pk=comment_pk)
     comment.content = new_content
     comment.save()
     return JsonResponse({'updated_comment': {'pk': comment.pk, 'content': comment.content}})
@@ -269,26 +278,26 @@ def delete_generic(request, obj, json_answer):
 
 
 def delete_theme(request, theme_pk):
-    obj = Themes.objects.get()
+    obj = Themes.objects.get(pk=theme_pk)
     json_theme = [{'pk': obj.pk}]
 
     return delete_generic(request, obj, json_theme)
 
 
 def delete_card(request, card_pk):
-    obj = Cards.objects.get()
+    obj = Cards.objects.get(pk=card_pk)
     json_card = [{'pk': obj.pk}]
 
     return delete_generic(request, obj, json_card)
 
 
 def delete_comment_from_card(request, comment_pk):
-    obj = CardComments.objects.get()
+    obj = CardComments.objects.get(pk=comment_pk)
     return delete_generic(request, obj, {'pk': obj.pk})
 
 
 def delete_comment_from_theme(request, comment_pk):
-    obj = ThemeComments.objects.get()
+    obj = ThemeComments.objects.get(pk=comment_pk)
     return delete_generic(request, obj, {'pk': obj.pk})
 
 
@@ -458,16 +467,16 @@ def request_access_to_theme(request, user_pk, theme_pk):
 
 
 def give_access_to_theme(request, user_pk, theme_pk):
-    user = User.objects.get()
-    theme = Themes.objects.get()
+    user = User.objects.get(pk=user_pk)
+    theme = Themes.objects.get(pk=theme_pk)
 
     access = ThemeAccess.objects.filter(user=user, theme=theme)
     if access.exists():
         print('доступ уже есть')
         return redirect(reverse('main:open_theme', kwargs={'theme': theme_pk}))
 
-    ThemeAccess.objects.create(user=user, theme=Themes.objects.get())
-    
+    ThemeAccess.objects.create(user=user, theme=Themes.objects.get(pk=theme_pk))
+
     send_notification.delay({
 
         'subject': f"Пользователь {theme.user.username} выдал вам доступ к теме {theme.title}",
@@ -499,14 +508,14 @@ def request_access_to_card(request, user_pk, card_pk):
 
 
 def give_access_to_card(request, user_pk, card_pk):
-    user = User.objects.get()
-    card = Cards.objects.get()
+    user = User.objects.get(pk=user_pk)
+    card = Cards.objects.get(pk=card_pk)
 
     access = CardAccess.objects.filter(user=user, card=card)
     if access.exists():
         return redirect(reverse('main:open_card', kwargs={'card': card_pk}))
 
-    CardAccess.objects.create(user=user, card=Cards.objects.get())
+    CardAccess.objects.create(user=user, card=Cards.objects.get(pk=card_pk))
 
     send_notification.delay({
 
