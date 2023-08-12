@@ -56,9 +56,9 @@
             {% for theme in themes %}
             {% if theme.user == request.user %}
             <li class="wrapper">
-                <div id="{{theme.pk}}" class="card">
+                <div id="theme_{{theme.pk}}" class="card">
                     <object>
-                        <div id="del_obj">
+                        <div id="del_theme" class="del_obj">
                             X
                             <a href="{% url 'main:del_theme' theme.pk %}"></a>
                         </div>
@@ -86,7 +86,7 @@
             {% else %}
             <li class="wrapper">
                 <a href="{% url 'main:open_theme' theme.pk %}">
-                    <div id="{{theme.pk}}" class="card">
+                    <div id="theme_{{theme.pk}}" class="card">
                         {% if theme.image %}
                         <div class="photo">
                             <img src="{{theme.image.url}}" alt="">
@@ -143,9 +143,9 @@
             {% for card in cards %}
             {% if card.user == request.user %}
             <li class="wrapper">
-                <div id="{{card.pk}}" class="card">
+                <div id="card_{{card.pk}}" class="card">
                     <object>
-                        <div id="del_obj">
+                        <div id="del_card" class="del_obj">
                             X
                             <a href="{% url 'main:del_card' card.pk %}"></a>
                         </div>
@@ -173,7 +173,7 @@
             {% else %}
             <li class="wrapper">
                 <a href="{% url 'main:open_card' card.pk %}">
-                    <div id="{{card.pk}}" class="card">
+                    <div id="card_{{card.pk}}" class="card">
                         {% if card.image %}
                         <div class="photo">
                             <img src="{{ card.image.url }}" alt="">

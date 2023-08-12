@@ -116,7 +116,7 @@ form input {
     padding-left: 2vw;
 
 }
-#del_obj{
+.del_obj{
 
     position: relative;
 	float:right;
