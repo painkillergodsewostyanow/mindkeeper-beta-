@@ -1,64 +1,70 @@
 {% extends 'main/base.html' %}
 {% load static %}
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/forms.css' %}">
 <link rel="stylesheet" href="{% static 'css/profile_style.css' %}">
 {% endblock %}
 {% block content %}
 <div class="main-container">
-<form action="{% url 'users:my_profile' %}" method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
+    <form action="{% url 'users:my_profile' %}" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
         <div class="flex_wrapper">
-            <div class="profile_image">
-                {{form.image}}
-                <label for="id_image">
-                {% if object.image %}
-                <img src="{{object.image.url}}" alt="">
-                {% else %}
-                <img src="" alt="НЕТУ">
-                {% endif %}
-            </div>
-            </label>
-        <div class="info">
-            <div class="form_name">
-                {{form.username}}
+            <div class="upload-container">
+                <div class="profile_image">
+                    {{form.image}}
+                    <label for="id_image">
+                        {% if object.image %}
+                        <img id="upload-image" src="{{object.image.url}}" alt="">
+                        {% else %}
+                        <img id="upload-image" src="{% static 'img/if_not_profile_image.jpg' %}" alt="">
+                        {% endif %}
+                    </label>
+                </div>
             </div>
 
-            <div class="form_email">
-                {{form.email}}
-            </div>
-            <div class="form_phone_number">
-                {{form.phone_number}}
-            </div>
-            <div class="form_is_private">
-                {{form.is_private}}Приватный ?:
-            </div>
-            <div class="form_is_receive_notifications">
-                {{form.is_receive_notifications}}Получать уведомления по почте ?:
-            </div>
-            <div class="statistic">
-                Статистика:
-                <div>полученно:
-                    Лайков: {{total_likes_received}}
-                    Просмотров: {{total_views_received}}
-                    Комментариев: {{total_comments_received}}
-                </div>
-                <div>поставленно:
-                    Лайков: {{total_likes_verb}}
-                    Просмотров: {{total_views_verb}}
-                    Комментариев: {{total_comments_verb}}
-                </div>
-                <div class="">
-                    Подписчики: {{subscribers_count}}
-                    Подписки: {{subscribes_count}}
+            <div class="info">
+                <div class="form_name">
+                    {{form.username}}
                 </div>
 
+                <div class="form_email">
+                    {{form.email}}
+                </div>
+                <div class="form_phone_number">
+                    {{form.phone_number}}
+                </div>
+                <div class="form_is_private">
+                    {{form.is_private}}Приватный ?:
+                </div>
+                <div class="form_is_receive_notifications">
+                    {{form.is_receive_notifications}}Получать уведомления по почте ?:
+                </div>
+                <div class="statistic">
+                    Статистика:
+                    <div>полученно:
+                        Лайков: {{total_likes_received}}
+                        Просмотров: {{total_views_received}}
+                        Комментариев: {{total_comments_received}}
+                    </div>
+                    <div>поставленно:
+                        Лайков: {{total_likes_verb}}
+                        Просмотров: {{total_views_verb}}
+                        Комментариев: {{total_comments_verb}}
+                    </div>
+                    <div class="">
+                        <a href="{% url 'users:show_subscribers' object.pk %}">Подписчики: {{subscribers_count}}</a>
+                        <a href="{% url 'users:show_subscribes' object.pk %}">Подписки: {{subscribes_count}}</a>
+                    </div>
+                </div>
+            </div>
+            <div class="special_sittings">
+                <a class="change_password" href="{% url 'users:password_change' %}">Сменить пароль</a>
             </div>
         </div>
-    </div>
 
-    {{form.errors}}
-    <button type="submit">Изменить</button>
-<a href="{% url 'users:delete_user' %}">Удалить профиль</a>
+        {{form.errors}}
+        <button type="submit">Изменить</button>
+        <a href="{% url 'users:delete_user' %}">
+            <div class="button">Удалить профиль</div>
+        </a>
 </div>
 {% endblock %}

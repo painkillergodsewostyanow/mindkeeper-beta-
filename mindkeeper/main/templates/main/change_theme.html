@@ -1,8 +1,32 @@
 {% extends "main/base.html" %}
+{% load static %}
 {% block content %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/add_change_card_theme-style.css' %}">
+{% endblock %}
+
 <form action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form.as_p }}
+    <div class="flex_wrapp">
+        <div class="upload-container">
+            {{form.image}}
+            <label for="id_image">
+                <div class="image_place">
+                    {% if object.image %}
+                        <img id="upload-image" src="{{object.image.url}}" alt="">
+                    {% else %}
+                        <img id="upload-image" src="{% static 'img/file_input.png' %}" alt="">
+                    {% endif %}
+                </div>
+            </label>
+        </div>
+        <div class="title">
+            {{form.title}}
+                <div class="is_private">
+                    <span>Сделать тему приватной? {{form.is_private}}</span>
+                </div>
+        </div>
+    </div>
     <button type="submit">Изменить тему</button>
 </form>
 {% endblock %}

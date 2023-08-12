@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import JsonResponse
+from django.views import View
 from django.views.generic import TemplateView, UpdateView
 from django.shortcuts import render, HttpResponseRedirect, redirect
 from .forms import *
@@ -8,6 +9,8 @@ from django.urls import reverse, reverse_lazy
 from .scripts import check_access, ajax_login_required
 from django.conf import settings
 from main.tasks import send_notification
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 
 
 class IndexTemplateView(TemplateView):
@@ -19,14 +22,18 @@ class IndexTemplateView(TemplateView):
             context['super_themes'] = Themes.get_super_themes_by_user(self.request.user)
             context['super_cards'] = Cards.get_super_cards_by_user(self.request.user)
 
+        context['most_popular_authors'] = User.most_popular_authors()
+        context['most_popular_themes'] = Themes.most_popular_theme()
+        context['most_popular_cards'] = Cards.most_popular_cards()
+
         return context
 
 
 @login_required
 def storage(request):
     query = request.GET.get('query')
-    if query:
 
+    if query:
         themes = set(list(Themes.objects.filter(title__icontains=query, user=request.user)) + list(
             Themes.objects.filter(sub_theme_to__in=Themes.objects.filter(title__icontains=query,
                                                                          user=request.user))) + list(
@@ -68,160 +75,162 @@ def storage(request):
     return render(request, "main/catalog.html", context)
 
 
-@login_required
 def open_theme(request, theme):
     father_theme = theme
     theme = Themes.objects.filter(pk=theme).first()
 
-    if request.user.is_authenticated:
-        if not ThemeViews.objects.filter(obj=theme, user=request.user).first():
-            ThemeViews.objects.create(obj=theme, user=request.user)
-    if theme.is_private:
-        if check_access(request.user, theme, theme.users_with_access):
+    if theme:
+
+        if request.user.is_authenticated:
+            if not ThemeViews.objects.filter(obj=theme, user=request.user).first():
+                ThemeViews.objects.create(obj=theme, user=request.user)
+
+        if theme.is_private:
+            if check_access(request.user, theme, theme.users_with_access):
+                context = {
+                    'father_theme': Themes.objects.filter(pk=father_theme).first(),
+                    "themes": Themes.objects.filter(sub_theme_to=theme),
+                    "cards": Cards.objects.filter(theme=theme)
+                }
+
+            else:
+                context = {
+                    'request_access_link': f'{settings.DOMAIN_NAME}{reverse_lazy("main:request_access_to_theme", kwargs={"user_pk": request.user.pk, "theme_pk": theme.pk})}'
+                }
+        else:
             context = {
                 'father_theme': Themes.objects.filter(pk=father_theme).first(),
                 "themes": Themes.objects.filter(sub_theme_to=theme),
                 "cards": Cards.objects.filter(theme=theme)
             }
 
-        else:
-            context = {
-                'request_access_link': f'{settings.DOMAIN_NAME}{reverse_lazy("main:request_access_to_theme", kwargs={"user_pk": request.user.pk, "theme_pk": theme.pk})}'
-            }
+        return render(request, "main/catalog.html", context)
     else:
-        context = {
-            'father_theme': Themes.objects.filter(pk=father_theme).first(),
-            "themes": Themes.objects.filter(sub_theme_to=theme),
-            "cards": Cards.objects.filter(theme=theme)
-        }
-
-    return render(request, "main/catalog.html", context)
+        ...
+        # TODO(404)
 
 
 def open_card(request, card):
     card = Cards.objects.filter(pk=card).first()
-    if request.user.is_authenticated:
-        if not CardViews.objects.filter(obj=card, user=request.user).first():
-            CardViews.objects.create(obj=card, user=request.user)
+    if card:
+        if request.user.is_authenticated:
+            if not CardViews.objects.filter(obj=card, user=request.user).first():
+                CardViews.objects.create(obj=card, user=request.user)
 
-    if card.is_private:
-        if check_access(request.user, card, card.users_with_access):
+        if card.is_private:
+            if check_access(request.user, card, card.users_with_access):
+                context = {'card': card}
+
+            else:
+                context = {
+                    'request_access_link': f'{settings.DOMAIN_NAME}{reverse_lazy("main:request_access_to_card", kwargs={"user_pk": request.user.pk, "card_pk": card.pk})}'
+                }
+        else:
             context = {'card': card}
 
+        return render(request, "main/card.html", context)
+    else:
+        ...
+        # TODO(404)
+
+
+class AddCardView(View, LoginRequiredMixin):
+    def get(self, request, theme=None):
+        theme = Themes.objects.filter(pk=theme).first()
+        form = CardForm
+
+        if theme:
+            if not check_access(request.user, theme):
+                print('доступа нет')
+                return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+            context = {'form': form, 'theme': theme.pk}
+
         else:
-            context = {
-                'request_access_link': f'{settings.DOMAIN_NAME}{reverse_lazy("main:request_access_to_card", kwargs={"user_pk": request.user.pk, "card_pk": card.pk})}'
-            }
-    else:
-        context = {'card': card}
+            context = {'form': form}
 
-    return render(request, "main/card.html", context)
+        return render(request, "main/add_card.html", context)
 
+    def post(self, request):
+        is_private = 'is_private' in request.POST
+        theme = Themes.objects.get(pk=request.POST['theme']) if request.POST['theme'] else None
+        image = request.FILES.get('image')
 
-@login_required
-def add_card_form(request, theme=None):
-    theme = Themes.objects.filter(pk=theme).first()
-    form = CardForm()
-    if theme:
-        if not check_access(request.user, theme):
-            print('доступа нет')
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        card = Cards.objects.create(
+            user=request.user,
+            image=image,
+            is_private=is_private,
+            theme=theme,
+            title=request.POST['title'],
+            content=request.POST['content']
+        )
+        if not is_private:
+            if request.user.get_user_s_subscribers:
+                subscribers = request.user.get_user_s_subscribers
+                subscribers_email = [sub.subscriber.email for sub in subscribers if
+                                     sub.subscriber.is_receive_notifications]
 
-        context = {'form': form, 'theme': theme.pk,
-                   'action': 'Добавить карточку',
-                   }
+                email_data = {
+                    'subject': f'У {request.user.username} новая карточка! {request.POST["title"]}',
+                    'recipient_list': subscribers_email,
+                    'message': f'У {request.user.username} новая карточка! {request.POST["title"]}\n'
+                               f'это сообщение пришло вам так как вы подписанны на {request.user.username}\n'
+                               f'если вы хотите отменить рассылку #TODO()'
+                }
 
-    else:
-        context = {'form': form,
-                   'action': 'Добавить карточку',
-                   }
+                send_notification.delay(email_data)
 
-    return render(request, "main/add_card.html", context)
-
-
-@login_required
-def add_theme_form(request, theme=None):
-    theme = Themes.objects.filter(pk=theme).first()
-    form = ThemeForm()
-    if theme:
-        if not check_access(request.user, theme):
-            print('доступа нет')
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-
-        context = {'form': form, 'theme': theme.pk,
-                   'action': 'Добавить тему',
-                   }
-
-    else:
-        context = {'form': form,
-                   'action': 'Добавить тему',
-                   }
-
-    return render(request, "main/add_theme.html", context)
+        return redirect(reverse('main:open_card', kwargs={'card': card.pk}))
 
 
-@login_required
-def add_card(request):
-    is_private = 'is_private' in request.POST
-    theme = Themes.objects.get() if request.POST['theme'] else None
-    image = request.FILES.get('image')
+class AddThemeView(View, LoginRequiredMixin):
+    def get(self, request, theme=None):
+        theme = Themes.objects.filter(pk=theme).first()
+        form = ThemeForm
+        if theme:
+            if not check_access(request.user, theme):
+                print('доступа нет')
+                return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
-    card = Cards.objects.create(
-        user=request.user,
-        image=image,
-        is_private=is_private,
-        theme=theme,
-        title=request.POST['title'], content=request.POST['content']
-    )
+            context = {'form': form, 'theme': theme.pk}
 
-    if request.user.get_user_s_subscribers:
-        subscribers = request.user.get_user_s_subscribers
-        subscribers_email = [sub.subscriber.email for sub in subscribers if sub.subscriber.is_receive_notifications]
+        else:
+            context = {'form': form}
 
-        email_data = {
-            'subject': f'У {request.user.username} новая карточка! {request.POST["title"]}',
-            'recipient_list': subscribers_email,
-            'message': f'У {request.user.username} новая карточка! {request.POST["title"]}\n'
-                       f'это сообщение пришло вам так как вы подписанны на {request.user.username}\n'
-                       f'если вы хотите отменить рассылку #TODO()'
-        }
+        return render(request, "main/add_theme.html", context)
 
-        send_notification.delay(email_data)
+    def post(self, request):
+        is_private = 'is_private' in request.POST
+        theme = Themes.objects.get(pk=request.POST['theme']) if request.POST['theme'] else None
+        image = request.FILES.get('image')
 
-    return redirect(reverse('main:open_card', kwargs={'card': card.pk}))
+        theme = Themes.objects.create(
+            image=image,
+            is_private=is_private,
+            user=request.user,
+            title=request.POST['title'],
+            sub_theme_to=theme
+        )
+        if not is_private:
+            if request.user.get_user_s_subscribers:
+                subscribers = request.user.get_user_s_subscribers
+                subscribers_email = [sub.subscriber.email for sub in subscribers if
+                                     sub.subscriber.is_receive_notifications]
 
+                email_data = {
+                    'subject': f'У {request.user.username} новая тема! {request.POST["title"]}',
+                    'recipient_list': subscribers_email,
+                    'message': f'У {request.user.username} новая тема! {request.POST["title"]}\n'
+                               f'это сообщение пришло вам так как вы подписанны на {request.user.username}\n'
+                               f'если вы хотите отменить рассылку #TODO()'
+                }
 
-@login_required
-def add_theme(request):
-    is_private = 'is_private' in request.POST
-    theme = Themes.objects.get(pk=request.POST['theme']) if request.POST['theme'] else None
-    image = request.FILES.get('image')
+                send_notification.delay(email_data)
 
-    theme = Themes.objects.create(
-        image=image,
-        is_private=is_private,
-        user=request.user,
-        title=request.POST['title'],
-        sub_theme_to=theme
-    )
-
-    if request.user.get_user_s_subscribers:
-        subscribers = request.user.get_user_s_subscribers
-        subscribers_email = [sub.subscriber.email for sub in subscribers if sub.subscriber.is_receive_notifications]
-
-        email_data = {
-            'subject': f'У {request.user.username} новая тема! {request.POST["title"]}',
-            'recipient_list': subscribers_email,
-            'message': f'У {request.user.username} новая тема! {request.POST["title"]}\n'
-                       f'это сообщение пришло вам так как вы подписанны на {request.user.username}\n'
-                       f'если вы хотите отменить рассылку #TODO()'
-        }
-
-        send_notification.delay(email_data)
-
-    return redirect(reverse('main:open_theme', kwargs={'theme': theme.pk}))
+        return redirect(reverse('main:open_theme', kwargs={'theme': theme.pk}))
 
 
+# UPDATE/EDIT
 class UpdateWithCheckAccessOnGet(UpdateView):
     def get(self, request, *args, **kwargs):
         update_obj = self.get_object()
@@ -254,7 +263,7 @@ class EditTheme(UpdateWithCheckAccessOnGet):
 
 def edit_card_comment(request, comment_pk):
     new_content = request.POST['content']
-    comment = CardComments.objects.get()
+    comment = CardComments.objects.get(pk=comment_pk)
     comment.content = new_content
     comment.save()
     return JsonResponse({'updated_comment': {'pk': comment.pk, 'content': comment.content}})
@@ -268,6 +277,7 @@ def edit_theme_comment(request, comment_pk):
     return JsonResponse({'updated_comment': {'pk': comment.pk, 'content': comment.content}})
 
 
+# DELETE
 def delete_generic(request, obj, json_answer):
     if check_access(request.user, obj):
         obj.delete()
@@ -301,6 +311,7 @@ def delete_comment_from_theme(request, comment_pk):
     return delete_generic(request, obj, {'pk': obj.pk})
 
 
+# LIKES
 @ajax_login_required
 def like_generic(request, obj, model, email_data=None):
     like_obj = model.objects.filter(user=request.user, obj=obj).first()
@@ -355,13 +366,13 @@ def like_theme(request, theme_pk):
     return like_generic(request, obj, ThemeLikes, email_data)
 
 
+# COMMENTS ANSWERS
 @ajax_login_required
 def add_comment_generic(request, model, content, obj, sub_comment_to=None, email_data=None):
     if not content:
         print('Коментарий путсым быть не может')
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
-    # TODO(celery)
     if email_data:
         if request.user.email in email_data['recipient_list']:
             email_data['recipient_list'].remove(request.user.email)
@@ -381,7 +392,7 @@ def add_comment_generic(request, model, content, obj, sub_comment_to=None, email
 
 
 def add_comment_to_theme(request):
-    theme = Themes.objects.get() if request.POST.get('theme') else None
+    theme = Themes.objects.get(pk=request.POST.get('theme')) if request.POST.get('theme') else None
     content = request.POST['content'] if request.POST['content'] else None
     if theme.user.is_receive_notifications:
         email_data = {
@@ -397,7 +408,7 @@ def add_comment_to_theme(request):
 
 
 def add_comment_to_card(request):
-    card = Cards.objects.get() if request.POST.get('card') else None
+    card = Cards.objects.get(pk=request.POST.get('card')) if request.POST.get('card') else None
     content = request.POST['content'] if request.POST['content'] else None
     email_data = None
     if card.user.is_receive_notifications:
@@ -412,8 +423,8 @@ def add_comment_to_card(request):
 
 
 def add_comment_to_card_comment(request):
-    card = Cards.objects.get() if request.POST.get('obj') else None
-    comment = CardComments.objects.get() if request.POST['comment'] else None
+    card = Cards.objects.get(pk=request.POST.get('obj')) if request.POST.get('obj') else None
+    comment = CardComments.objects.get(pk=request.POST['comment'][8:]) if request.POST['comment'] else None
     content = request.POST['content'] if request.POST['content'] else None
     if comment.user.is_receive_notifications:
         email_data = {
@@ -430,8 +441,8 @@ def add_comment_to_card_comment(request):
 
 
 def add_comment_to_theme_comment(request):
-    theme = Themes.objects.get() if request.POST.get('obj') else None
-    comment = ThemeComments.objects.get() if request.POST['comment'] else None
+    theme = Themes.objects.get(pk=request.POST.get('obj')) if request.POST.get('obj') else None
+    comment = ThemeComments.objects.get(pk=request.POST['comment'][8:]) if request.POST['comment'] else None
     content = request.POST['content'] if request.POST['content'] else None
     if comment.user.is_receive_notifications:
         email_data = {
@@ -447,6 +458,7 @@ def add_comment_to_theme_comment(request):
     return add_comment_generic(request, ThemeComments, content, theme, comment, email_data=email_data)
 
 
+# ACCESS TO CARD/THEME
 def request_access_to_theme(request, user_pk, theme_pk):
     theme = Themes.objects.filter(pk=theme_pk).first()
     link = f'{settings.DOMAIN_NAME}{reverse("main:give_access_to_theme", kwargs={"user_pk": user_pk, "theme_pk": theme_pk})}'
@@ -527,16 +539,40 @@ def give_access_to_card(request, user_pk, card_pk):
     return redirect(reverse('main:index'))
 
 
+def show_users_list_generic(request, title, users, if_users_is_empty):
+    context = {
+        'title': title,
+        'users': users,
+        'if_users_is_empty': if_users_is_empty
+    }
+
+    return render(request, 'main/users_list_view.html', context)
+
+
+def show_users_who_like_theme_list(request, theme_pk):
+    users = [User.objects.get(pk=obj.user.pk) for obj in ThemeLikes.objects.filter(obj=theme_pk)]
+    return show_users_list_generic(request, f'Кому понравилась тема {Themes.objects.get(pk=theme_pk).title}', users,
+                                   'Станте первым кому понравиться тема')
+
+
+def show_users_who_like_card_list(request, card_pk):
+    users = [User.objects.get(pk=obj.user.pk) for obj in CardLikes.objects.filter(obj=card_pk)]
+    return show_users_list_generic(request, f'Кому понравилась карточка {Cards.objects.get(pk=card_pk).title}', users,
+                                   'Станте первым кому понравиться карточка')
+
+
 # SEARCH
 def global_search(request):
     # TODO(Логика поиска)
     query = request.GET.get('query')
     if query:
 
-        cards = Cards.objects.filter(Q(title__icontains=query) | Q(content__icontains=query)).filter(is_private=False)
-        themes = Themes.objects.filter(title__icontains=query, is_private=False)
+        cards = Cards.objects.filter(Q(title__icontains=query) | Q(content__icontains=query)).filter(is_private=False)[
+                :6]
+        themes = Themes.objects.filter(title__icontains=query, is_private=False)[:6]
+        authors = User.objects.filter(username__icontains=query)[:6]
 
-        if not cards and not themes:
+        if not cards and not themes and not authors:
             context = {
 
                 'massage': "По данному запросу совпадени не найденно"
@@ -546,7 +582,8 @@ def global_search(request):
         else:
             context = {
                 'themes': themes,
-                'cards': cards
+                'cards': cards,
+                'authors': authors
             }
 
         return render(request, 'main/global_search.html', context)
@@ -557,7 +594,9 @@ def global_search(request):
 
             'themes': Themes.objects.filter(is_private=False)[:20],
 
-            'cards': Cards.objects.filter(is_private=False)[:20]
+            'cards': Cards.objects.filter(is_private=False)[:20],
+
+            'authors': User.objects.filter(is_private=False)[:20],
 
         }
     return render(request, 'main/global_search.html', context)
@@ -565,30 +604,58 @@ def global_search(request):
 
 def global_search_ajax_json(request):
     # TODO(Логика поиска)
-    themes = Themes.objects.filter(title__icontains=request.GET['query']).filter(is_private=False)
+    themes = Themes.objects.filter(title__icontains=request.GET['query']).filter(is_private=False)[:6]
 
     cards = Cards.objects.filter(
         Q(title__icontains=request.GET['query']) |
         Q(content__icontains=request.GET['query'])
-    ).filter(is_private=False).distinct()
+    ).filter(is_private=False).distinct()[:6]
+
+    authors = User.objects.filter(username__icontains=request.GET['query'])[:6]
 
     themes_json = list()
     cards_json = list()
+    authors_json = list()
     for card in cards:
         cards_json.append(
-            {'pk': card.pk, 'image': card.image.url if card.image else "", 'title': card.title, 'likes': card.likes,
-             'views': card.views, 'comments': card.count_comments})
+            {
+                'pk': card.pk,
+                'image': card.image.url if card.image else "",
+                'title': card.title,
+                'likes': card.likes,
+                'views': card.views,
+                'comments': card.count_comments
+            }
+        )
 
     for theme in themes:
-        themes_json.append({'pk': theme.pk, 'image': theme.image.url if theme.image else "", 'title': theme.title,
-                            'likes': theme.likes, 'views': theme.views, 'comments': theme.count_comments})
+        themes_json.append(
+            {
+                'pk': theme.pk,
+                'image': theme.image.url if theme.image else "",
+                'title': theme.title,
+                'likes': theme.likes,
+                'views': theme.views,
+                'comments': theme.count_comments
+            }
+        )
 
-    return JsonResponse({'themes': themes_json, 'cards': cards_json}, safe=False)
+    for author in authors:
+        authors_json.append(
+            {
+                'pk': author.pk,
+                'username': author.username,
+                'image': author.image.url if author.image else "",
+                'subscribers_count': author.get_user_s_subscribers_count
+            }
+        )
+    return JsonResponse({'themes': themes_json, 'cards': cards_json, 'authors': authors_json}, safe=False)
 
 
 def local_search_ajax_json(request):
     # TODO(Логика поиска)
     query = request.GET['query']
+
     themes = set(list(Themes.objects.filter(title__icontains=query, user=request.user)) + list(
         Themes.objects.filter(sub_theme_to__in=Themes.objects.filter(title__icontains=query,
                                                                      user=request.user))) + list(

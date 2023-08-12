@@ -5,6 +5,8 @@
 }
 .storage-preview{
 
+    position: absolute;
+    max-width: 20vw;
 	color:white;
 	background-color: black;
 	padding: 4vw;
@@ -49,4 +51,86 @@
 
 }
 
+.most-popular{
+
+    display: inline-block;
+
+}
+
+.most-popular{
+
+    width: 60vw;
+    margin-left: 32vw;
+
+}
+
+.label{
+
+    font-size: 2vw;
+    text-align: center;
+    margin-bottom: 2vw;
+}
+
+.card {
+
+    border-radius: 20px;
+    background-color: black;
+    color: white;
+    width: 20vw;
+    height: 22vw;
+    margin-bottom: 2vw;
+    margin-right: 2vw;
+
+}
+
+.image{
+
+    padding-top:2vw;
+    margin: 0 auto;
+    width: 12vw;
+    height: 14vw;
+
+}
+
+.image img{
+
+    width: 12vw;
+    height: 14vw;
+
+}
+
+.statistic{
+
+    display: flex;
+    justify-content: center;
+
+}
+
+.statistic div {
+
+    margin-left: 1.2vw;
+    font-size: 1.2vw;
+
+}
+
+.statistic div:first-child{
+
+    margin-left: 0;
+
+}
+
+
+.card_title{
+
+    text-align: center;
+    font-size: 1.2vw;
+
+}
+
+.cards_place{
+
+
+    display: flex;
+
+}
 

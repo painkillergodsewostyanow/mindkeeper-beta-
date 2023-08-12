@@ -15,7 +15,7 @@
 
 <div id="message">{{massage}}</div>
 <div class="container">
-    <div id="theme_catalog">
+    <div id="themes_catalog">
         {% if themes %}
         <div class="label">Темы:</div>
         {% endif %}
@@ -46,7 +46,7 @@
 </div>
 
 <div class="container">
-    <div id="card_catalog">
+    <div id="cards_catalog">
         {% if cards %}
         <div class="label">Карточки:</div>
         {% endif %}
@@ -68,6 +68,35 @@
                         <span class="views">{{card.views}}</span>
                         <span class="likes">{{card.likes}}</span>
                         <span class="comments">{{card.count_comments}}</span>
+                    </div>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div class="container">
+    <div id="authors_catalog">
+        {% if authors %}
+        <div class="label">Авторы:</div>
+        {% endif %}
+        <ul class="catalog_place">
+            {% for author in authors %}
+            <li class="wrapper">
+                <a href="{% url 'users:profile' author.pk %}">
+                    <div class="card">
+                        {% if author.image %}
+                        <div class="photo">
+                            <img src="{{author.image.url}}" alt="">
+                        </div>
+                        {% else %}
+                        <div class="photo">
+                            <img src="{% static 'img/if_not_profile_image.jpg' %}" alt="">
+                        </div>
+                        {% endif %}
+                        <p class="object_title">{{author.username}}</p>
+                        <span class="views">{{author.get_user_s_subscribers_count}}</span>
                     </div>
                 </a>
             </li>

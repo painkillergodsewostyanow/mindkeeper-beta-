@@ -1,0 +1,33 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/users_list_view.css' %}">
+{% endblock %}
+
+{% block content %}
+    {% if users %}
+        <h1>{{title}}</h1>
+        <ul class="catalog_place">
+            {% for user in users %}
+                <li class="wrapper">
+                    <div class="card">
+                        <a href="{% url 'users:profile' user.pk %}">
+                            <div class="photo">
+                                {% if user.image %}
+                                    <img src="{{user.image.url}}" alt="">
+                                {% else %}
+                                    <img src="{% static 'img/if_not_profile_image.jpg' %}" alt="">
+                                {% endif %}
+                            </div>
+                            <p class="object_title">{{user.username}}</p>
+                        </a>
+
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <h1>{{if_users_is_empty}}</h1>
+    {% endif %}
+{% endblock %}

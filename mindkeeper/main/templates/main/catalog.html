@@ -10,10 +10,10 @@
 <input id="is_theme" type="hidden" value="true">
 
 {% if request_access_link %}
-    <div id="message">
-        У вас нет доступа,
-        <a href="{{request_access_link}}">запросить</a>
-    </div>
+<div id="message">
+    У вас нет доступа,
+    <a href="{{request_access_link}}">запросить</a>
+</div>
 {% else %}
 <div class="container">
     {% if father_theme %}
@@ -26,15 +26,18 @@
         <a href="{% url 'main:storage'%}"><- хранилище</a>
     </div>
     {% endif %}
+
     <div class="father_theme">
         {{father_theme.title}}
     </div>
     <div id="likes">
         {{father_theme.likes}}
     </div>
-    <div id="like_trigger"> like
+    <div id="like_trigger">
+        like
         <a href="{% url 'main:like_theme' father_theme.pk %}"></a>
     </div>
+    <div><a href="{% url 'main:show_who_like_theme' father_theme.pk %}">Кто лайкнул</a></div>
     {% else %}
     <div>
         <form action="" method='get'>
@@ -42,7 +45,8 @@
         </form>
     </div>
     {% endif %}
-    <div id="theme_catalog">
+    <div id="message"></div>
+    <div id="themes_catalog">
         {% if themes %}
         <div class="label">
             Темы:
@@ -60,10 +64,7 @@
                         </div>
                     </object>
                     <object>
-                        <div id="update_obj">
-                            @
-                            <a href="{% url 'main:edit_theme' theme.pk %}"></a>
-                        </div>
+                        <a id="update_obj" href="{% url 'main:edit_theme' theme.pk %}">@</a>
                     </object>
                     <a href="{% url 'main:open_theme' theme.pk %}">
                         {% if theme.image %}
@@ -132,7 +133,7 @@
     </div>
 </div>
 <div class="container">
-    <div id="card_catalog">
+    <div id="cards_catalog">
         {% if cards %}
         <div class="label">
             Карточки:
@@ -150,10 +151,7 @@
                         </div>
                     </object>
                     <object>
-                        <div id="update_obj">
-                            @
-                            <a href="{% url 'main:edit_card' card.pk %}"></a>
-                        </div>
+                        <a id="update_obj" href="{% url 'main:edit_card' card.pk %}">@</a>
                     </object>
                     <a href="{% url 'main:open_card' card.pk %}">
                         {% if card.image %}

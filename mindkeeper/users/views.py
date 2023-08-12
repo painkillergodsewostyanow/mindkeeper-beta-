@@ -1,7 +1,6 @@
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.views import LoginView
-from main.tasks import send_notification
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -10,7 +9,7 @@ from django.core.exceptions import ValidationError
 from main.tasks import send_notification
 from django.shortcuts import redirect, HttpResponseRedirect, render
 from django.urls import reverse_lazy, reverse
-from django.views.generic import CreateView, UpdateView, DetailView, TemplateView
+from django.views.generic import UpdateView, DetailView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from .forms import UserForm, UserUpdateForm, UserAuthenticationForm
@@ -19,6 +18,7 @@ from users.models import Subscribes, User
 from .tasks import send_verify_email
 from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
+from main.views import show_users_list_generic
 
 
 # User
@@ -61,8 +61,8 @@ class UserDetailView(UserStatisticInContextMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(UserDetailView, self).get_context_data(**kwargs)
-        context['super_theme'] = Themes.get_super_themes_by_user(self.get_object()).filter(is_private=False)
-        context['super_card'] = Cards.get_super_cards_by_user(self.get_object()).filter(is_private=False)
+        context['super_theme'] = set(Themes.get_super_themes_by_user(self.get_object()).filter(is_private=False))
+        context['super_card'] = set(Cards.get_super_cards_by_user(self.get_object()).filter(is_private=False)) # TODO(выводить те к которым есть доступ)
         context['is_request_user_subscribed'] = self.get_object().is_user_subscribed(
             self.request.user) if self.request.user.is_authenticated else False
 
@@ -211,6 +211,11 @@ def password_reset_request_view(request):
     return render(request, 'users/registration/password_reset/password_reset.html', {'form': password_reset_form})
 
 
+def password_change_done(request):
+    logout(request)
+    return redirect('login')
+
+
 @login_required
 def subscribe(request, author_pk):
     author = User.objects.get(pk=author_pk)
@@ -241,3 +246,15 @@ def unsubscribe(request, author_pk):
     author = User.objects.get(pk=author_pk)
     Subscribes.objects.filter(author=author, subscriber=request.user).delete()
     return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+
+def show_users_who_subscribes_list(request, user_pk):
+    users = [User.objects.get(pk=obj.author.pk) for obj in Subscribes.objects.filter(author=user_pk)]
+    return show_users_list_generic(request, f"Подписчики {User.objects.get(pk=user_pk)}", users,
+                                   'у автора нету подписчиков')
+
+
+def show_user_s_subscribes_list(request, user_pk):
+    users = [User.objects.get(pk=obj.author.pk) for obj in Subscribes.objects.filter(subscriber=user_pk)]
+    return show_users_list_generic(request, f"Подписчики {User.objects.get(pk=user_pk)}", users,
+                                   'у автора нету подписчиков')

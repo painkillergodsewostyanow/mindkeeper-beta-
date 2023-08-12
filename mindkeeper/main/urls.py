@@ -11,12 +11,12 @@ urlpatterns = [
     path('storage/theme/<int:theme>', open_theme, name="open_theme"),
     path('storage/theme/<int:theme>/card/<int:card>', open_card, name="open_card"),
     path('storage/card/<int:card>', open_card, name="open_card"),
-    path('storage/theme/<int:theme>/add_card_form', add_card_form, name="add_card_form"),
-    path('storage/add_card_form', add_card_form, name="add_card_form"),
-    path('storage/add_card', add_card, name="add_card"),
-    path('storage/add_theme_form', add_theme_form, name="add_theme_form"),
-    path('storage/theme/<int:theme>/add_theme_form', add_theme_form, name="add_theme_form"),
-    path('storage/add_theme', add_theme, name="add_theme"),
+    path('storage/theme/<int:theme>/add_card_form', AddCardView.as_view(), name="add_card_form"),
+    path('storage/add_card_form', AddCardView.as_view(), name="add_card_form"),
+    path('storage/add_card', AddCardView.as_view(), name="add_card"),
+    path('storage/add_theme_form', AddThemeView.as_view(), name="add_theme_form"),
+    path('storage/theme/<int:theme>/add_theme_form', AddThemeView.as_view(), name="add_theme_form"),
+    path('storage/add_theme', AddThemeView.as_view(), name="add_theme"),
     path('storage/theme/<int:pk>/change_theme', EditTheme.as_view(), name='edit_theme'),
     path('storage/card/<int:pk>/change_theme', EditCard.as_view(), name='edit_card'),
     path('storage/del_theme/<int:theme_pk>', delete_theme, name="del_theme"),
@@ -42,5 +42,8 @@ urlpatterns = [
          name="give_access_to_theme"),
     path('storage/give_access_to_card/<int:user_pk>/to/<int:card_pk>', give_access_to_card,
          name="give_access_to_card"),
+
+    path('storage/theme/<int:theme_pk>/who_like', show_users_who_like_theme_list, name="show_who_like_theme"),
+    path('storage/card/<int:card_pk>/who_like', show_users_who_like_card_list, name="show_who_like_card"),
 
 ]

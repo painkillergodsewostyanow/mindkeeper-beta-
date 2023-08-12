@@ -9,12 +9,13 @@
 {% else %}
 <a href="{% url 'main:storage' %}"><- хранилище</a>
 {% endif %}
-    {% if request_access_link %}
-    <div id="message">
-        У вас нет доступа,
-        <a href="{{request_access_link}}">запросить</a>
-    </div>
-    {% else %}
+
+{% if request_access_link %}
+<div id="message">
+    У вас нет доступа,
+    <a href="{{request_access_link}}">запросить</a>
+</div>
+{% else %}
 {% if request.user == card.user %}
 <div><a href="{% url 'main:edit_card' card.pk %}">Изменить</a></div>
 {% endif %}
@@ -22,13 +23,14 @@
     {{card.title}}
 </div>
 <div>
-    {{card.content|safe}}
+        {{card.content|safe}}
 </div>
 <div>
     <div id="likes">{{card.likes}}</div>
     <div id="like_trigger"> like
         <a href="{% url 'main:like_card' card.pk %}"></a>
     </div>
+    <div><a href="{% url 'main:show_who_like_card' card.pk %}">Кому понравилась карточка</a></div>
 </div>
 
 <div class="comment_block">

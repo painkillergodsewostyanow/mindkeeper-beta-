@@ -9,14 +9,15 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+import os
+from os import path
 from pathlib import Path
 
 from django.urls import reverse_lazy
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -163,7 +164,7 @@ AUTHENTICATION_BACKENDS = ('users.backends.AuthByUsernameOrEmailBackends',)
 
 # SUMMERNOTE
 SUMMERNOTE_CONFIG = {'width': '100%', 'height': '400px',
-                     'attachment_upload_to': 'card_content_image'}
+                     'attachment_upload_to': 'card_content_image',}
 
 # EMAIL
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

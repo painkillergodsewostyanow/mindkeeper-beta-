@@ -1,40 +1,137 @@
 {% extends "main/base.html" %}
 {% load static %}
+{% load cache %}
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/index_style.css' %}">
 {% endblock %}
 {% block content %}
 <div class="container">
-		<div class="storage-preview">
-            {% if super_themes %}
-                <div class="storage__link"><a href="{% url 'main:storage' %}">ВАША КАРТОТЕКА</a></div>
-                {% for super_theme in super_themes %}
-                    <div class="storage-preview__super_theme">
-                        <a href="{% url 'main:open_theme' super_theme.pk %}">{{super_theme}}..</a>
-                        {% if super_theme.get_sub_themes %}
-                            {% for sub_theme in super_theme.get_sub_themes %}
-                                <div class="storage-preview__super_theme__item">
-                                    <a href="{% url 'main:open_theme' sub_theme.pk %}">{{sub_theme}}..</a>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                        {% if super_theme.get_cards %}
-                            {% for card in super_theme.get_cards %}
-                                <div class="storage-preview__super_theme__item">
-                                    <a href="{% url 'main:open_card' card.pk %}">{{card.title}}</a>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                {% endfor %}
-                {% for card in super_cards %}
-                        <div class="storage-preview__super_theme">
-                            <a href="{% url 'main:open_card' card.pk %}">{{card.title}}</a>
-                        </div>
-                {% endfor %}
-            {% else %}
-                <div class="storage__link"><a href="{% url 'main:add_theme_form' %}">СОЗДАТЬ ТЕМУ</a></div>
+    <div class="storage-preview">
+        {% if super_themes %}
+        <div class="storage__link"><a href="{% url 'main:storage' %}">ВАША КАРТОТЕКА</a></div>
+        {% for super_theme in super_themes %}
+        <div class="storage-preview__super_theme">
+            <a href="{% url 'main:open_theme' super_theme.pk %}">{{super_theme}}..</a>
+            {% if super_theme.get_sub_themes %}
+            {% for sub_theme in super_theme.get_sub_themes %}
+            <div class="storage-preview__super_theme__item">
+                <a href="{% url 'main:open_theme' sub_theme.pk %}">{{sub_theme}}..</a>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% if super_theme.get_cards %}
+            {% for card in super_theme.get_cards %}
+            <div class="storage-preview__super_theme__item">
+                <a href="{% url 'main:open_card' card.pk %}">{{card.title}}</a>
+            </div>
+            {% endfor %}
             {% endif %}
         </div>
+        {% endfor %}
+        {% for card in super_cards %}
+        <div class="storage-preview__super_theme">
+            <a href="{% url 'main:open_card' card.pk %}">{{card.title}}</a>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="storage__link"><a href="{% url 'main:add_theme_form' %}">СОЗДАТЬ ТЕМУ</a></div>
+        {% endif %}
+    </div>
+    <div class="most-popular">
+        <div class="title">Популярное</div>
+
+        <div class="most_popular_authors">
+            {% cache 3 most_popular_authors %}
+            {% if most_popular_authors %}
+            <div class="label">авторы</div>
+            <div class="cards_place">
+                {% for author in most_popular_authors %}
+                <a href="{% url 'users:profile' author.pk %}">
+                    <div class="card">
+                        <div class="image">
+                            {% if author.image %}
+                            <img src="{{author.image.url}}" alt="нету">
+                            {% else %}
+                            <img src="{% static 'img/if_not_profile_image.jpg' %}" alt="нету">
+                            {% endif %}
+                        </div>
+                        <div class="card_title">
+                            {{author.username}}
+                        </div>
+
+                        <div class="statistic">
+                            <div>П {{author.get_user_s_subscribers_count}}</div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+                {% endif %}
+                {% endcache %}
+            </div>
+
+        <div class="most_popular_theme">
+            {% cache 300 most_popular_themes %}
+            {% if most_popular_themes %}
+            <div class="label">темы</div>
+            <div class="cards_place">
+                {% for theme in most_popular_themes %}
+                <a href="{% url 'main:open_theme' theme.pk %}">
+                    <div class="card">
+                        <div class="image">
+                            {% if theme.image %}
+                            <img src="{{theme.image.url}}" alt="нету">
+                            {% else %}
+                            <img src="{% static 'img/if_not_profile_image.jpg' %}" alt="нету">
+                            {% endif %}
+                        </div>
+                        <div class="card_title">
+                            {{theme.title}}
+                        </div>
+
+                        <div class="statistic">
+                            <div>К {{theme.count_comments}}</div>
+                            <div>Л {{theme.likes}}</div>
+                            <div>П {{theme.views}}</div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+                {% endif %}
+                {% endcache %}
+            </div>
+        </div>
+
+        <div class="most_popular_card">
+            {% cache 300 most_popular_cards %}
+            {% if most_popular_cards %}
+            <div class="label">карочки</div>
+            <div class="cards_place">
+                {% for card in most_popular_cards %}
+                <a href="{% url 'main:open_card' card.pk %}">
+                    <div class="card">
+                        <div class="image">
+                            {% if card.image %}
+                            <img src="{{card.image.url}}" alt="нету">
+                            {% else %}
+                            <img src="{% static 'img/if_not_profile_image.jpg' %}" alt="нету">
+                            {% endif %}
+                        </div>
+                        <div class="card_title">
+                            {{card.title}}
+                        </div>
+
+                        <div class="statistic">
+                            <div>К {{card.count_comments}}</div>
+                            <div>Л {{card.likes}}</div>
+                            <div>П {{card.views}}</div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+                {% endif %}
+                {% endcache %}
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

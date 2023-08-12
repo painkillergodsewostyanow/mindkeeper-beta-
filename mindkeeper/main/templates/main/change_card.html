@@ -2,7 +2,7 @@
 
 {% load static %}
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/forms.css' %}">
+<link rel="stylesheet" href="{% static 'css/add_change_card_theme-style.css' %}">
 {% endblock %}
 {% block content %}
 <form action="" method="POST" enctype="multipart/form-data">
@@ -13,19 +13,23 @@
             {{form.image}}
             <label for="id_image">
             <div class="image_place">
-                <img id="upload-image" src="{% static 'img/file_input.png' %}" alt="">
+                {% if object.image %}
+                    <img id="upload-image" src="{{object.image.url}}" alt="">
+                {% else %}
+                    <img id="upload-image" src="{% static 'img/file_input.png' %}" alt="">
+                {% endif %}
             </div>
             </label>
         </div>
         <div class="title">
             {{form.title}}
+                <div class="is_private">
+                    <span>Сделать карточку приватной? {{form.is_private}}</span>
+                </div>
         </div>
     </div>
     {{form.content}}
-    <div>
-        <span>Сделать карточку приватной? {{form.is_private}}</span>
-    </div>
     {{form.errors}}
-    <button TYPE="submit">Изменить карточку</button>
+    <button TYPE="submit">Изменить</button>
 </form>
 {% endblock %}

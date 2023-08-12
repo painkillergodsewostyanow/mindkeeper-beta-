@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models import Count
+from random import shuffle as shake
 from users.models import User
 from django_cleanup import cleanup
 from .mixins import ResizeImageOnSaveMixin, CompressImageOnSaveMixin
@@ -42,7 +44,8 @@ class Themes(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, m
     is_private = models.BooleanField(default=False)
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Автор")
     title = models.CharField(max_length=255, verbose_name="Название")
-    sub_theme_to = models.ForeignKey(to="self", on_delete=models.CASCADE, blank=True, null=True, verbose_name="Подтема для")
+    sub_theme_to = models.ForeignKey(to="self", on_delete=models.CASCADE, blank=True, null=True,
+                                     verbose_name="Подтема для")
 
     class Meta:
         verbose_name = "Тема"
@@ -110,6 +113,19 @@ class Themes(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, m
     def count_user_s_comment_placed(cls, user):
         return cls.count_placed(ThemeComments, user)
 
+    @staticmethod
+    def most_popular_theme():
+        themes = []
+        most_popular_by_views = ThemeViews.objects.all().values('obj').order_by('-obj__count').annotate(Count('obj'))[:3]
+        most_popular_by_likes = ThemeLikes.objects.all().values('obj').order_by('-obj__count').annotate(Count('obj'))[:3]
+        most_popular_by_comments = ThemeComments.objects.all().values('obj').order_by('-obj__count').annotate(Count('obj'))[:3]
+        themes += [query['obj'] for query in most_popular_by_views]
+        themes += [query['obj'] for query in most_popular_by_likes]
+        themes += [query['obj'] for query in most_popular_by_comments]
+        shake(themes)
+
+        return [Themes.objects.get(pk=theme) for theme in set(themes)][:3]
+
 
 @cleanup.select
 class Cards(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, models.Model):
@@ -143,7 +159,7 @@ class Cards(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, mo
 
     @property
     def views(self):
-        return CardViews.objects.filter(obj =self).count()
+        return CardViews.objects.filter(obj=self).count()
 
     @property
     def likes(self):
@@ -180,6 +196,20 @@ class Cards(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, mo
     @classmethod
     def count_user_s_comment_placed(cls, user):
         return cls.count_placed(CardComments, user)
+
+    @staticmethod
+    def most_popular_cards():
+        cards = []
+        most_popular_by_views = CardViews.objects.all().values('obj').order_by('-obj__count').annotate(Count('obj'))[:3]
+        most_popular_by_likes = CardLikes.objects.all().values('obj').order_by('-obj__count').annotate(Count('obj'))[:3]
+        most_popular_by_comments = CardComments.objects.all().values('obj').order_by('-obj__count').annotate(
+            Count('obj'))[:3]
+        cards += [query['obj'] for query in most_popular_by_views]
+        cards += [query['obj'] for query in most_popular_by_likes]
+        cards += [query['obj'] for query in most_popular_by_comments]
+        shake(cards)
+
+        return [Cards.objects.get(pk=card) for card in set(cards)][:3]
 
 
 class CardAccess(models.Model):
@@ -230,7 +260,7 @@ class Comments(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     time_created = models.TimeField(auto_now_add=True)
-    sub_comment_to = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True,)
+    sub_comment_to = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, )
 
 
 class ThemeComments(Comments):

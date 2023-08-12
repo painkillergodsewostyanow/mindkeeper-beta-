@@ -6,17 +6,17 @@
 {% endblock %}
 {% block content %}
 
-{% if object.is_private %}
-<div>Приватный</div>
+{%  if object.is_private %}
+    <div>Приватный</div>
 {% else %}
 <div class="main-container">
     <div class="flex_wrapper">
 
         <div class="profile_image">
             {% if object.image %}
-            <img src="{{object.image.url}}" alt="">
+                <img src="{{object.image.url}}" alt="">
             {% else %}
-            <img src="" alt="НЕТУ">
+                <img src="{% static 'img/if_not_profile_image.jpg' %}" alt="">
             {% endif %}
         </div>
 
@@ -41,8 +41,8 @@
                     Комментариев: {{total_comments_verb}}
                 </div>
                 <div class="">
-                    Подписчики: {{subscribers_count}}
-                    Подписки: {{subscribes_count}}
+                    <a href="{% url 'users:show_subscribers' object.pk %}">Подписчики: {{subscribers_count}}</a>
+                    <a href="{% url 'users:show_subscribes' object.pk %}">Подписки: {{subscribes_count}}</a>
                 </div>
 
             </div>
@@ -51,11 +51,11 @@
 
     {% if is_request_user_subscribed %}
     <a href="{% url 'users:unsubscribe' object.pk %}">
-        <div class="sub_button">Отписаться</div>
+        <div class="button">Отписаться</div>
     </a>
     {% else %}
     <a href="{% url 'users:subscribe' object.pk %}">
-        <div class="sub_button">Подписаться</div>
+        <div class="button">Подписаться</div>
     </a>
     {% endif %}
     <div class="catalog_container">

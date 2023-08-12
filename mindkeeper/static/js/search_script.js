@@ -6,7 +6,7 @@ function ajax_send(url, params) {
 		},
 	})
 	    .then(response => response.json())
-	    .then(json => render_like(json))
+	    .then(json => render_search(json))
 
 };
 
@@ -25,7 +25,7 @@ input.oninput = function(){
     };
 
 
-function render_like(data){
+function render_search(data){
 
     Handlebars.registerHelper('if', function (v1, operator, v2, options) {
 
@@ -33,25 +33,36 @@ function render_like(data){
             case '==':
                 return (v1 == v2) ? options.fn(this) : options.inverse(this);
             case '!=':
+                return (v1 != v2) ? options.fn(this) : options.inverse(this);
             default:
                 return options.inverse(this);
         }
     });
 
+    let open_profile_URL = "http://127.0.0.1:8000/users/profile/"
     let open_theme_URL = "http://127.0.0.1:8000/storage/theme/"
     let del_theme_URL = "http://127.0.0.1:8000/storage/del_theme/"
     let change_theme_URL = "http://127.0.0.1:8000/storage/change_theme/"
     let open_card_URL = "http://127.0.0.1:8000/storage/card/"
     let del_card_URL = "http://127.0.0.1:8000/storage/del_card/"
     let change_card_URL = "http://127.0.0.1:8000/storage/change_card/"
-    let card_catalog = document.getElementById('card_catalog')
-    let theme_catalog = document.getElementById('theme_catalog')
+    let cards_catalog = document.getElementById('cards_catalog')
+    let themes_catalog = document.getElementById('themes_catalog')
+    let authors_catalog = document.getElementById('authors_catalog')
 
     let themes = JSON.parse(JSON.stringify(data.themes))
     let cards = JSON.parse(JSON.stringify(data.cards))
 
+    if ('authors' in JSON.parse(JSON.stringify(data))){
+
+        authors = JSON.parse(JSON.stringify(data.authors))
+
+    }
+
+
     let theme_label = ""
     let card_label = ""
+    let authors_label = ""
 
 
     if (Object.entries(themes).length != 0){
@@ -60,7 +71,10 @@ function render_like(data){
     if (Object.entries(cards).length != 0){
         card_label = "Карточки: "
     }
-    if (theme_label === "" && card_label === ""){
+    if (Object.entries(authors).length != 0){
+        authors_label = "Авторы: "
+    }
+    if (theme_label === "" && card_label === "" && authors_label === ""){
 
         document.getElementById('message').innerHTML = "По данному запросу совпадени не найденно";
 
@@ -89,6 +103,7 @@ function render_like(data){
                             </div>
                         </object>
                         <a href="${open_theme_URL}{{this.pk}}">
+
                             {{#if this.image '!=' ""}}
                                 <div class="photo">
                                     <img src="{{this.image}}" alt="">
@@ -150,11 +165,47 @@ function render_like(data){
             {{/each}}`
 
 
+    if (authors_catalog) {
+
+        authors_HTML =`
+        <div class="label">${authors_label}</div>
+        <ul class="catalog_place">
+            {{#each authors }}
+            <li class="wrapper">
+                <a href="${open_profile_URL}{{this.pk}}">
+                    <div class="card">
+                            {{#if this.image '!=' ""}}
+                                <div class="photo">
+                                    <img src="{{this.image}}" alt="">
+                                </div>
+                            {{/if}}
+                            {{#if this.image '==' ""}}
+                            <div class="photo">
+                                  <img src="" alt="potom">
+                            </div>
+                            {{/if}}
+                        <p class="object_title">{{this.username}}</p>
+                        <span class="views">{{this.get_user_s_subscribers_count}}</span>
+                    </div>
+                </a>
+            </li>
+            {{/each}}
+            `
+
+    }
+
+    let authors_block = Handlebars.compile(authors_HTML)
     let themes_block = Handlebars.compile(theme_HTML);
     let cards_block = Handlebars.compile(card_HTML);
 
 
 
-    theme_catalog.innerHTML = themes_block({themes: themes})
-    card_catalog.innerHTML = cards_block({cards: cards})
+    themes_catalog.innerHTML = themes_block({themes: themes})
+    cards_catalog.innerHTML = cards_block({cards: cards})
+
+    if (authors_catalog){
+
+        authors_catalog.innerHTML = authors_block({authors: authors})
+
+    }
 }

@@ -1,8 +1,6 @@
-from django.contrib.auth import logout
-from django.contrib.auth.models import AbstractBaseUser, UserManager, AbstractUser, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, UserManager, PermissionsMixin
 from django.db import models
-from main.mixins import ResizeImageOnSaveMixin, CompressImageOnSaveMixin
-from django.utils.translation import gettext_lazy as _
+from django.db.models import Count
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -33,12 +31,25 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_user_s_subscribers(self):
         return Subscribes.objects.filter(author=self)
 
+    @property
+    def get_user_s_subscribers_count(self):
+        return self.get_user_s_subscribes.count()
+
     def is_user_subscribed(self, user):
         if Subscribes.objects.filter(author=self, subscriber=user):
             return True
         return False
 
+    @staticmethod
+    def most_popular_authors():
+        count_subscribes = Subscribes.objects.all().values('author').order_by('-author__count').annotate(Count('author'))[:3]
+        users = [User.objects.get(pk=subscribes['author']) for subscribes in count_subscribes]
+        return users
+
 
 class Subscribes(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='UsersSubscribesAuthor')
     subscriber = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.author} {self.subscriber}"
