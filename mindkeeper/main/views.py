@@ -12,7 +12,6 @@ from main.tasks import send_notification
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 
-
 class IndexTemplateView(TemplateView):
     template_name = 'main/index.html'
 
@@ -34,14 +33,9 @@ def storage(request):
     query = request.GET.get('query')
 
     if query:
-        themes = set(list(Themes.objects.filter(title__icontains=query, user=request.user)) + list(
-            Themes.objects.filter(sub_theme_to__in=Themes.objects.filter(title__icontains=query,
-                                                                         user=request.user))) + list(
-            Themes.objects.filter(title__icontains=query, user=request.user,
-                                  sub_theme_to__isnull=True)))
+        themes = Themes.objects.filter(user=request.user, title__icontains=query)
 
-        cards = set(Cards.objects.filter(Q(title__icontains=query) |
-                                         Q(content__icontains=query)).filter(user=request.user))
+        cards = Cards.objects.filter(title__icontains=query, user=request.user)
 
         if not themes and not cards:
             context = {
@@ -567,9 +561,8 @@ def global_search(request):
     query = request.GET.get('query')
     if query:
 
-        cards = Cards.objects.filter(Q(title__icontains=query) | Q(content__icontains=query)).filter(is_private=False)[
-                :6]
-        themes = Themes.objects.filter(title__icontains=query, is_private=False)[:6]
+        cards = Cards.objects.filter(search_vector=query).filter(is_private=False)[:6]
+        themes = Themes.objects.filter(search_vector=query, is_private=False)[:6]
         authors = User.objects.filter(username__icontains=query)[:6]
 
         if not cards and not themes and not authors:
@@ -592,9 +585,9 @@ def global_search(request):
         # TODO(Предпочтения)
         context = {
 
-            'themes': Themes.objects.filter(is_private=False)[:20],
+            'themes': Themes.objects.filter(is_private=False, sub_theme_to__isnull=True)[:20],
 
-            'cards': Cards.objects.filter(is_private=False)[:20],
+            'cards': Cards.objects.filter(is_private=False, theme__isnull=True)[:20],
 
             'authors': User.objects.filter(is_private=False)[:20],
 
@@ -604,14 +597,24 @@ def global_search(request):
 
 def global_search_ajax_json(request):
     # TODO(Логика поиска)
-    themes = Themes.objects.filter(title__icontains=request.GET['query']).filter(is_private=False)[:6]
+    query = request.GET['query']
+    if query:
+        # Поиск по запросу
+        themes = Themes.objects.filter(search_vector=query, is_private=False)[:6]
 
-    cards = Cards.objects.filter(
-        Q(title__icontains=request.GET['query']) |
-        Q(content__icontains=request.GET['query'])
-    ).filter(is_private=False).distinct()[:6]
+        cards = Cards.objects.filter(search_vector=query).filter(is_private=False)[:6]
 
-    authors = User.objects.filter(username__icontains=request.GET['query'])[:6]
+        authors = User.objects.filter(username__icontains=query)[:6]
+
+    else:
+
+        # TODO(ПРЕДПОЧТЕНИЯ)
+        # если в запросе пустая строка
+        themes = Themes.objects.filter(is_private=False, sub_theme_to__isnull=True)[:20],
+
+        cards = Cards.objects.filter(is_private=False, theme__isnull=True)[:20],
+
+        authors = User.objects.filter(is_private=False)[:20],
 
     themes_json = list()
     cards_json = list()
@@ -655,15 +658,15 @@ def global_search_ajax_json(request):
 def local_search_ajax_json(request):
     # TODO(Логика поиска)
     query = request.GET['query']
+    if query:
+        # Поиск по запросу
+        themes = Themes.objects.filter(search_vector=query, user=request.user)
+        cards = Cards.objects.filter(search_vector=query).filter(is_private=False)[:6]
 
-    themes = set(list(Themes.objects.filter(title__icontains=query, user=request.user)) + list(
-        Themes.objects.filter(sub_theme_to__in=Themes.objects.filter(title__icontains=query,
-                                                                     user=request.user))) + list(
-        Themes.objects.filter(title__icontains=query, user=request.user,
-                              sub_theme_to__isnull=True)))
-
-    cards = set(Cards.objects.filter(Q(title__icontains=query) |
-                                     Q(content__icontains=query)).filter(user=request.user))
+    else:
+        # Если в запросе пустая строка
+        themes = Themes.get_super_themes_by_user(request.user)
+        cards = Cards.get_super_cards_by_user(request.user)
 
     themes_json = list()
     cards_json = list()

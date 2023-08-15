@@ -46,6 +46,7 @@ function render_search(data){
     let open_card_URL = "http://127.0.0.1:8000/storage/card/"
     let del_card_URL = "http://127.0.0.1:8000/storage/del_card/"
     let change_card_URL = "http://127.0.0.1:8000/storage/change_card/"
+    let domain = 'http://127.0.0.1:8000/'
     let cards_catalog = document.getElementById('cards_catalog')
     let themes_catalog = document.getElementById('themes_catalog')
     let authors_catalog = document.getElementById('authors_catalog')
@@ -53,16 +54,21 @@ function render_search(data){
     let themes = JSON.parse(JSON.stringify(data.themes))
     let cards = JSON.parse(JSON.stringify(data.cards))
 
-    if ('authors' in JSON.parse(JSON.stringify(data))){
-
-        authors = JSON.parse(JSON.stringify(data.authors))
-
-    }
-
 
     let theme_label = ""
     let card_label = ""
     let authors_label = ""
+
+        if ('authors' in JSON.parse(JSON.stringify(data))){
+
+        authors = JSON.parse(JSON.stringify(data.authors))
+
+        if (Object.entries(authors).length != 0){
+            authors_label = "Авторы: "
+        }
+
+
+    }
 
 
     if (Object.entries(themes).length != 0){
@@ -70,9 +76,6 @@ function render_search(data){
     }
     if (Object.entries(cards).length != 0){
         card_label = "Карточки: "
-    }
-    if (Object.entries(authors).length != 0){
-        authors_label = "Авторы: "
     }
     if (theme_label === "" && card_label === "" && authors_label === ""){
 
@@ -91,16 +94,13 @@ function render_search(data){
                         <li class="wrapper">
                         <div class="card">
                         <object>
-                            <div id="del_obj">
+                            <div id="del_theme" class="del_obj">
                                 X
-                                <a href="{% url 'main:del_theme' theme.pk %}"></a>
+                                <a href="http://127.0.0.1:8000/storage/del_theme/{{this.pk}}"></a>
                             </div>
                         </object>
                         <object>
-                            <div id="update_obj">
-                                @
-                                <a href="{% url 'main:edit_theme' theme.pk %}"></a>
-                            </div>
+                                <a id="update_obj" href="http://127.0.0.1:8000/storage/theme/{{this.pk}}/change_theme">@</a>
                         </object>
                         <a href="${open_theme_URL}{{this.pk}}">
 
@@ -131,16 +131,13 @@ function render_search(data){
                         <li class="wrapper">
                         <div class="card">
                         <object>
-                            <div id="del_obj">
+                            <div id="del_card" class="del_obj">
                                 X
-                                <a href="{% url 'main:del_card' card.pk %}"></a>
+                                <a href="storage/del_card/{{this.pk}}"></a>
                             </div>
                         </object>
                         <object>
-                            <div id="update_obj">
-                                @
-                                <a href="{% url 'main:edit_card' card.pk %}"></a>
-                            </div>
+                                <a href="storage/card/{{ this.pk }}/change_card">@</a>
                         </object>
                         <a href="${open_card_URL}{{this.pk}}">
                             {{#if this.image '!=' ""}}
@@ -194,7 +191,9 @@ function render_search(data){
 
     }
 
-    let authors_block = Handlebars.compile(authors_HTML)
+    if (authors_catalog) {
+        authors_block = Handlebars.compile(authors_HTML)
+    }
     let themes_block = Handlebars.compile(theme_HTML);
     let cards_block = Handlebars.compile(card_HTML);
 

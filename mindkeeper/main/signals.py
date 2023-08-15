@@ -1,10 +1,10 @@
 import os
 
 from django.dispatch import receiver
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 
 from mindkeeper.settings import MEDIA_ROOT, MEDIA_URL
-from .models import Cards
+from .models import Cards, Themes
 
 
 @receiver(post_delete, sender=Cards)
@@ -27,3 +27,13 @@ def on_delete(sender, **kwargs):
         right_enter = image.find('"')
         path = os.path.join(MEDIA_ROOT / image[:right_enter])
         os.remove(os.path.join(path))
+
+
+@receiver(post_save, sender=Themes)
+def post_save_themes(sender, instance, created, update_fields, **kwargs):
+    instance.update_search_vector('title')
+
+
+@receiver(post_save, sender=Cards)
+def post_save_card(sender, instance, created, update_fields, **kwargs):
+    instance.update_search_vector('title', 'content')

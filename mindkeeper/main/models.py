@@ -1,3 +1,5 @@
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField, SearchVector
 from django.db import models
 from django.db.models import Count
 from random import shuffle as shake
@@ -47,12 +49,19 @@ class Themes(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, m
     sub_theme_to = models.ForeignKey(to="self", on_delete=models.CASCADE, blank=True, null=True,
                                      verbose_name="Подтема для")
 
+    search_vector = SearchVectorField(null=True)
+
     class Meta:
         verbose_name = "Тема"
         verbose_name_plural = "Темы"
+        indexes = [GinIndex(fields=["search_vector"])]
 
     def __str__(self):
         return f"{self.title}"
+
+    def update_search_vector(self, *args):
+        qs = Themes.objects.filter(pk=self.pk)
+        qs.update(search_vector=SearchVector(*args))
 
     @staticmethod
     def get_super_themes_by_user(user):
@@ -139,12 +148,19 @@ class Cards(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, mo
     title = models.CharField(max_length=255, verbose_name="Название")
     content = models.TextField(verbose_name="Контент")
 
+    search_vector = SearchVectorField(null=True)
+
     class Meta:
         verbose_name = "Карточка"
         verbose_name_plural = "Карточки"
+        indexes = [GinIndex(fields=["search_vector"])]
 
     def __str__(self):
         return f"{self.theme}, {self.title}"
+
+    def update_search_vector(self, *args):
+        qs = Cards.objects.filter(pk=self.pk)
+        qs.update(search_vector=SearchVector(*args))
 
     @staticmethod
     def get_super_cards_by_user(user):
