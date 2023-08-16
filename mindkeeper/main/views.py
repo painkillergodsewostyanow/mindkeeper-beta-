@@ -1,5 +1,4 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.views import View
 from django.views.generic import TemplateView, UpdateView

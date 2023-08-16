@@ -137,7 +137,7 @@ function render_search(data){
                             </div>
                         </object>
                         <object>
-                                <a href="storage/card/{{ this.pk }}/change_card">@</a>
+                                <a id="update_obj" href="storage/card/{{ this.pk }}/change_card">@</a>
                         </object>
                         <a href="${open_card_URL}{{this.pk}}">
                             {{#if this.image '!=' ""}}
