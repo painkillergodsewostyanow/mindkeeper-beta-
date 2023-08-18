@@ -23,6 +23,8 @@ class CheckAccess(BasePermission):
                 parent_theme = Themes.objects.get(pk=parent_theme_pk)
                 if not request.user != parent_theme.user:
                     return False
-        print(check_access(request.user, obj, obj.users_with_access))
-        return check_access(request.user, obj, obj.users_with_access)
+
+        if obj.is_private:
+            return check_access(request.user, obj, obj.users_with_access)
+        return True
 

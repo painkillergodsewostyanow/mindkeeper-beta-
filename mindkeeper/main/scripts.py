@@ -3,10 +3,10 @@ from django.conf import settings
 
 
 def check_access(user, to=None,  users_with_access=None):
-    if getattr(to, 'obj', False):
-        if to.obj.user == user:
-            return True
-        return False
+    # if getattr(to, 'obj', False):
+    #     if to.obj.user == user:
+    #         return True
+    #     return False
 
     if users_with_access:
         if user in users_with_access:

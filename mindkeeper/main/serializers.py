@@ -12,7 +12,7 @@ class ThemesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Themes
-        fields = ('pk', 'image', 'user', 'title', 'parent_theme', 'likes', 'views', 'count_comments')
+        fields = ('pk', 'image', 'user', 'title', 'is_private', 'parent_theme', 'likes', 'views', 'count_comments')
 
 
 class CardsSerializer(serializers.ModelSerializer):
@@ -20,7 +20,7 @@ class CardsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cards
-        fields = ('pk', 'image', 'user', 'title', 'parent_theme', 'likes', 'views', 'count_comments')
+        fields = ('pk', 'image', 'user', 'title', 'is_private', 'parent_theme', 'likes', 'views', 'count_comments')
 
 
 class AuthorsSerializer(serializers.ModelSerializer):
