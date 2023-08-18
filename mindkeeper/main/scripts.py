@@ -1,4 +1,4 @@
-from django.http import JsonResponse
+from rest_framework.response import Response
 from django.conf import settings
 
 
@@ -12,18 +12,18 @@ def check_access(user, to=None,  users_with_access=None):
         if user in users_with_access:
             return True
 
-    if to :
+    if to:
         if to.user == user:
             return True
 
     return False
 
 
-def ajax_login_required(func):
+def ajax_or_api_login_required(func):
 
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return JsonResponse({"authenticated": False, "login_url": settings.LOGIN_URL}, safe=False)
+            return Response({"login_url": settings.LOGIN_URL}, status=401)
         return func(request, *args, **kwargs)
 
     return wrapper

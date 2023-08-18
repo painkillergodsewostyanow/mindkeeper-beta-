@@ -1,14 +1,51 @@
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
 from django.views import View
 from django.views.generic import TemplateView, UpdateView
 from django.shortcuts import render, HttpResponseRedirect, redirect
+from rest_framework.decorators import api_view
+from rest_framework.generics import CreateAPIView
+from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, \
+    ListModelMixin
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
+
+from .permissions import CheckAccess
+from .serializers import *
 from .forms import *
 from django.urls import reverse, reverse_lazy
-from .scripts import check_access, ajax_login_required
+from .scripts import check_access, ajax_or_api_login_required
 from django.conf import settings
 from main.tasks import send_notification
 from django.contrib.auth.mixins import LoginRequiredMixin
+
+
+class IndexAPIView(APIView):
+    def get(self, request):
+        print(request.user)
+        if request.user.is_authenticated:
+            storage_preview = [
+                {'themes': Themes.get_super_themes_by_user(request.user).values('title', 'pk')},
+                {'cards': Cards.get_super_cards_by_user(request.user).values('title', 'pk')}
+            ]
+        else:
+            storage_preview = 'login_required'
+
+        authors = AuthorsSerializer(User.most_popular_authors(), many=True).data
+        themes = ThemesSerializer(Themes.most_popular_theme(), many=True).data
+        cards = CardsSerializer(Cards.most_popular_cards(), many=True).data
+
+        most_popular = {
+
+            'authors': authors,
+            'themes': themes,
+            'cards': cards
+
+        }
+
+        return Response({'storage_preview': storage_preview, 'most_popular': most_popular})
 
 
 class IndexTemplateView(TemplateView):
@@ -25,6 +62,38 @@ class IndexTemplateView(TemplateView):
         context['most_popular_cards'] = Cards.most_popular_cards()
 
         return context
+
+
+@api_view(('GET',))
+@ajax_or_api_login_required
+def storage_api_view(request):
+    query = request.GET.get('query')
+
+    if query:
+        themes = Themes.objects.filter(user=request.user, search_vector=query)
+        cards = Cards.objects.filter(search_vector=query, user=request.user)
+
+        if not themes and not cards:
+            return Response({'detail': 'совпадений не найденно'})
+
+        else:
+            return Response(
+                {
+                    'themes': ThemesSerializer(themes, many=True).data,
+                    'cards': CardsSerializer(cards, many=True).data
+                }
+            )
+
+    else:
+        themes = Themes.get_super_themes_by_user(request.user)
+        cards = Cards.get_super_cards_by_user(request.user)
+
+        return Response(
+            {
+                'themes': ThemesSerializer(themes, many=True).data,
+                'cards': CardsSerializer(cards, many=True).data
+            }
+        )
 
 
 @login_required
@@ -66,6 +135,37 @@ def storage(request):
         }
 
     return render(request, "main/catalog.html", context)
+
+
+class ThemesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet):
+    serializer_class = ThemesSerializer
+    queryset = Themes.objects.all()
+    permission_classes = (CheckAccess, )
+
+    def retrieve(self, request, *args, **kwargs):
+        father_theme = Themes.objects.get(pk=kwargs['pk'])
+        request.user.has_perm(CheckAccess, self.get_object())
+        sub_themes = father_theme.get_sub_themes
+        cards = father_theme.get_cards
+        return Response(
+            {
+                'father_theme': ThemesSerializer(father_theme).data,
+                'themes': ThemesSerializer(sub_themes, many=True).data,
+                'cards': CardsSerializer(cards, many=True).data,
+                'comments': ThemeCommentsSerializer(father_theme.comments, many=True).data
+            }
+        )
+
+
+class CardsViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet):
+    serializer_class = CardsSerializer
+    queryset = Cards.objects.all()
+    permission_classes = (CheckAccess, )
+
+    def retrieve(self, request, *args, **kwargs):
+        request.user.has_perm(CheckAccess, self.get_object())
+        card = Cards.objects.get(pk=kwargs['pk'])
+        return Response({'card': CardsSerializer(card).data, 'comments': CardCommentsSerializer(card.comments, many=True).data})
 
 
 def open_theme(request, theme):
@@ -137,7 +237,7 @@ class AddCardView(View, LoginRequiredMixin):
                 print('доступа нет')
                 return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
-            context = {'form': form, 'theme': theme.pk}
+            context = {'form': form, 'parent_theme': theme.pk}
 
         else:
             context = {'form': form}
@@ -146,7 +246,7 @@ class AddCardView(View, LoginRequiredMixin):
 
     def post(self, request):
         is_private = 'is_private' in request.POST
-        theme = Themes.objects.get(pk=request.POST['theme']) if request.POST['theme'] else None
+        theme = Themes.objects.get(pk=request.POST['parent_theme']) if request.POST['parent_theme'] else None
         image = request.FILES.get('image')
 
         card = Cards.objects.create(
@@ -185,7 +285,7 @@ class AddThemeView(View, LoginRequiredMixin):
                 print('доступа нет')
                 return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
-            context = {'form': form, 'theme': theme.pk}
+            context = {'form': form, 'parent_theme': theme.pk}
 
         else:
             context = {'form': form}
@@ -194,7 +294,7 @@ class AddThemeView(View, LoginRequiredMixin):
 
     def post(self, request):
         is_private = 'is_private' in request.POST
-        theme = Themes.objects.get(pk=request.POST['theme']) if request.POST['theme'] else None
+        theme = Themes.objects.get(pk=request.POST['parent_theme']) if request.POST['parent_theme'] else None
         image = request.FILES.get('image')
 
         theme = Themes.objects.create(
@@ -220,7 +320,7 @@ class AddThemeView(View, LoginRequiredMixin):
 
                 send_notification.delay(email_data)
 
-        return redirect(reverse('main:open_theme', kwargs={'theme': theme.pk}))
+        return redirect(reverse('main:open_theme', kwargs={'parent_theme': theme.pk}))
 
 
 # UPDATE/EDIT
@@ -251,7 +351,7 @@ class EditTheme(UpdateWithCheckAccessOnGet):
     template_name = 'main/change_theme.html'
 
     def get_success_url(self):
-        return reverse('main:open_theme', kwargs={'theme': self.kwargs['pk']})
+        return reverse('main:open_theme', kwargs={'parent_theme': self.kwargs['pk']})
 
 
 def edit_card_comment(request, comment_pk):
@@ -305,7 +405,7 @@ def delete_comment_from_theme(request, comment_pk):
 
 
 # LIKES
-@ajax_login_required
+@ajax_or_api_login_required
 def like_generic(request, obj, model, email_data=None):
     like_obj = model.objects.filter(user=request.user, obj=obj).first()
     like_counter = model.objects.filter(obj=obj)
@@ -360,7 +460,7 @@ def like_theme(request, theme_pk):
 
 
 # COMMENTS ANSWERS
-@ajax_login_required
+@ajax_or_api_login_required
 def add_comment_generic(request, model, content, obj, sub_comment_to=None, email_data=None):
     if not content:
         print('Коментарий путсым быть не может')
@@ -385,7 +485,7 @@ def add_comment_generic(request, model, content, obj, sub_comment_to=None, email
 
 
 def add_comment_to_theme(request):
-    theme = Themes.objects.get(pk=request.POST.get('theme')) if request.POST.get('theme') else None
+    theme = Themes.objects.get(pk=request.POST.get('parent_theme')) if request.POST.get('parent_theme') else None
     content = request.POST['content'] if request.POST['content'] else None
     if theme.user.is_receive_notifications:
         email_data = {
@@ -459,7 +559,7 @@ def request_access_to_theme(request, user_pk, theme_pk):
     user = request.user
     access = ThemeAccess.objects.filter(user=user, theme=theme)
     if access.exists():
-        return redirect(reverse('main:open_theme', kwargs={'theme': theme_pk}))
+        return redirect(reverse('main:open_theme', kwargs={'parent_theme': theme_pk}))
 
     send_notification.delay({
         'subject': f"Пользователь {request.user.username} запрашивает доступ к теме {theme.title}",
@@ -478,7 +578,7 @@ def give_access_to_theme(request, user_pk, theme_pk):
     access = ThemeAccess.objects.filter(user=user, theme=theme)
     if access.exists():
         print('доступ уже есть')
-        return redirect(reverse('main:open_theme', kwargs={'theme': theme_pk}))
+        return redirect(reverse('main:open_theme', kwargs={'parent_theme': theme_pk}))
 
     ThemeAccess.objects.create(user=user, theme=Themes.objects.get(pk=theme_pk))
 

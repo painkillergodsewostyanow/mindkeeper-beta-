@@ -46,7 +46,7 @@ class Themes(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, m
     is_private = models.BooleanField(default=False)
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Автор")
     title = models.CharField(max_length=255, verbose_name="Название")
-    sub_theme_to = models.ForeignKey(to="self", on_delete=models.CASCADE, blank=True, null=True,
+    parent_theme = models.ForeignKey(to="self", on_delete=models.CASCADE, blank=True, null=True,
                                      verbose_name="Подтема для")
 
     search_vector = SearchVectorField(null=True)
@@ -65,7 +65,7 @@ class Themes(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, m
 
     @staticmethod
     def get_super_themes_by_user(user):
-        return Themes.objects.filter(user=user, sub_theme_to__isnull=True)
+        return Themes.objects.filter(user=user, parent_theme__isnull=True)
 
     @property
     def users_with_access(self):
@@ -76,11 +76,11 @@ class Themes(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, m
 
     @property
     def get_sub_themes(self):
-        return Themes.objects.filter(sub_theme_to=self)
+        return Themes.objects.filter(parent_theme=self)
 
     @property
     def get_cards(self):
-        return Cards.objects.filter(theme=self)
+        return Cards.objects.filter(parent_theme=self)
 
     @property
     def views(self):
@@ -142,9 +142,9 @@ class Cards(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, mo
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Автор")
     image = models.ImageField(upload_to="card_image", blank=True)
     is_private = models.BooleanField(default=False)
-    theme = models.ForeignKey(to=Themes, on_delete=models.CASCADE, verbose_name="Тема",
-                              blank=True, null=True,
-                              )
+    parent_theme = models.ForeignKey(to=Themes, on_delete=models.CASCADE, verbose_name="Тема",
+                                     blank=True, null=True,
+                                     )
     title = models.CharField(max_length=255, verbose_name="Название")
     content = models.TextField(verbose_name="Контент")
 
@@ -156,7 +156,7 @@ class Cards(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, mo
         indexes = [GinIndex(fields=["search_vector"])]
 
     def __str__(self):
-        return f"{self.theme}, {self.title}"
+        return f"{self.parent_theme}, {self.title}"
 
     def update_search_vector(self, *args):
         qs = Cards.objects.filter(pk=self.pk)
@@ -164,7 +164,7 @@ class Cards(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, mo
 
     @staticmethod
     def get_super_cards_by_user(user):
-        return Cards.objects.filter(user=user, theme__isnull=True)
+        return Cards.objects.filter(user=user, parent_theme__isnull=True)
 
     @property
     def users_with_access(self):
@@ -286,10 +286,3 @@ class ThemeComments(Comments):
 class CardComments(Comments):
     obj = models.ForeignKey(Cards, on_delete=models.CASCADE)
 
-# class Notifications(models.Model):
-#     subscriber = models.ForeignKey(User, on_delete=models.CASCADE)
-#     is_checked = models.BooleanField(default=False)
-#
-#
-# class CardNotifications(Notifications):
-#     obj = models.ForeignKey(Cards, on_delete=models.CASCADE)

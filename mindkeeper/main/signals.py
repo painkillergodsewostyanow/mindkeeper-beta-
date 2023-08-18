@@ -4,7 +4,9 @@ from django.dispatch import receiver
 from django.db.models.signals import post_delete, post_save
 
 from mindkeeper.settings import MEDIA_ROOT, MEDIA_URL
+from users.models import User
 from .models import Cards, Themes
+
 
 
 @receiver(post_delete, sender=Cards)
@@ -37,3 +39,4 @@ def post_save_themes(sender, instance, created, update_fields, **kwargs):
 @receiver(post_save, sender=Cards)
 def post_save_card(sender, instance, created, update_fields, **kwargs):
     instance.update_search_vector('title', 'content')
+

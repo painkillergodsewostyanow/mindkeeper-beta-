@@ -6,3 +6,4 @@ django_summernote
 django-debug-toolbar~=4.1.0
 django-redis
 celery[redis]
+djangorestframework

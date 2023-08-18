@@ -99,7 +99,6 @@ def del_user(request):
     return redirect(reverse('main:index'))
 
 
-# Auth
 class RegistrationUser(View):
     template_name = 'users/registration/reg.html'
     form_class = UserForm

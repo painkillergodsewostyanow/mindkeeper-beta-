@@ -1,6 +1,10 @@
+
 from django.db.models.fields.files import ImageFieldFile
 from django.db import models
 from PIL import Image
+from rest_framework.response import Response
+from django.conf import settings
+from rest_framework.views import APIView
 
 
 class ResizeImageOnSaveMixin:
