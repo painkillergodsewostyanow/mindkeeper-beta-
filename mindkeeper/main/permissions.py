@@ -8,6 +8,8 @@ class CheckAccess(BasePermission):
     def has_permission(self, request, view):
         if request.method == 'POST':
             parent_theme_pk = request.data.get('parent_theme', None)
+            if not request.user.is_authenticated:
+                return False
 
             if parent_theme_pk:
 

@@ -8,7 +8,6 @@ from users.models import User
 from .models import Cards, Themes
 
 
-
 @receiver(post_delete, sender=Cards)
 def on_delete(sender, **kwargs):
     images = []

@@ -11,8 +11,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=15, blank=True)
     is_private = models.BooleanField(default=False, verbose_name='Приватный ?')
-    is_email_verified = models.BooleanField(default=False, verbose_name='Почта подтверденна?')
     is_receive_notifications = models.BooleanField(default=True, verbose_name='Подписан на рассылку?')
+    is_active = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'image', 'phone_number', 'is_receive_notifications']

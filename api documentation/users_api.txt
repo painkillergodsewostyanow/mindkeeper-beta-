@@ -1,65 +1,9 @@
-POST http://127.0.0.1:8000/api/v1/auth/users/ - Регистрация пользователя	
+https://djoser.readthedocs.io/en/latest/base_endpoints.html
 
-data = 
-{
-    "email": str,
-    "image": may_be_null,
-    "phone_number": may_be_null,
-    "username": str,
-    "password": str,
-    "is_receive_notifications": bool
-}
-
-на почту отправляется ссылка для подтверждения почты
-
-
-POST http://127.0.0.1:8000/api/v1/auth/token/login/ - получение токена
-
-data = 
-{
-	"username": "{{username}} or {{email}}",
-	"password": "{{password}}"
-}
-
-
-GET http://127.0.0.1:8000/api/v1/auth/users/me/ - получение данных о пользователе
-
-headers = Authorization=Token {{token}}
-
-
-DELETE http://127.0.0.1:8000/api/v1/auth/users/me/ - удаление пользователя 
-
-headers = Authorization=Token {{token}}
-
-data =
-{
-    "currnet_password": {{current_password}} 
-}
-
-PATCH http://127.0.0.1:8000/api/v1/auth/users/me/ - изменение нескольких полей (кроме username)
-
-headers = Authorization=Token {{token}}
-
-data =
-{
-    "changed_fields": {{new_data}} 
-}
-
-PUT http://127.0.0.1:8000/api/v1/auth/users/me/ - изменение всех полей (кроме username)
-
-headers = Authorization=Token {{token}}
-
-data =
-{
-    "required_fields": {{new_data}} 
-}
-
-POST http://127.0.0.1:8000/api/v1/auth/users/set_username/ - изменение имени пользователя
-
-data = 
-{
-
-    "current_password": str
-    "new_username": str
-
-}
+User:
+    username = models.CharField(max_length=46, unique=True)
+    image = models.ImageField(blank=True, null=True)
+    email = models.EmailField(unique=True)
+    phone_number = models.CharField(max_length=15, blank=True)
+    is_private = models.BooleanField(default=False)
+    is_receive_notifications = models.BooleanField(default=True)
