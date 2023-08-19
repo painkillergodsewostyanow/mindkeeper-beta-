@@ -1,10 +1,8 @@
-import requests
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
-from rest_framework.response import Response
+from rest_framework.fields import CurrentUserDefault
+
 from users.models import User
 from .models import Themes, Cards, CardComments, ThemeComments
-from .scripts import check_access
 
 
 class ThemesSerializer(serializers.ModelSerializer):
@@ -24,18 +22,53 @@ class CardsSerializer(serializers.ModelSerializer):
 
 
 class AuthorsSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        default=serializers.CurrentUserDefault()
+    )
+
     class Meta:
         model = User
         fields = ('pk', 'image', 'username')
 
 
 class CardCommentsSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = CardComments
         fields = '__all__'
+        extra_kwargs = {'user': {'required': False}}
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+
+        comment = CardComments()
+        comment.user = request.user
+        comment.content = self.validated_data['content']
+        comment.sub_comment_to = self.validated_data.get('sub_comment_to', None)
+        comment.card = self.validated_data['card']
+        comment.sub_comment_to = self.validated_data.get('sub_comment_to', None)
+        comment.save()
+
+        return comment
 
 
 class ThemeCommentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ThemeComments
         fields = '__all__'
+        extra_kwargs = {'user': {'required': False}}
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+
+        comment = ThemeComments()
+        comment.user = request.user
+        comment.content = self.validated_data['content']
+        comment.sub_comment_to = self.validated_data.get('sub_comment_to', None)
+        comment.theme = self.validated_data['theme']
+        comment.sub_comment_to = self.validated_data.get('sub_comment_to', None)
+        comment.save()
+
+        return comment
+

@@ -1,14 +1,20 @@
 from django.urls import path, include
 from rest_framework.routers import SimpleRouter
-
+from users.views import CustomUserViewSet
 from .views import *
 
 app_name = "main"
 
 themes_router = SimpleRouter()
 cards_router = SimpleRouter()
+themes_comments_router = SimpleRouter()
+cards_comments_router = SimpleRouter()
+users_router = SimpleRouter()
 themes_router.register('themes', ThemesViewSet)
 cards_router.register('cards', CardsViewSet)
+themes_comments_router.register('themes_comments', ThemesCommentsViewSet)
+cards_comments_router.register('cards_comments', CardsCommentsViewSet)
+users_router.register('users', CustomUserViewSet)
 
 urlpatterns = [
     path('api/v1/index', IndexAPIView.as_view()),
@@ -17,12 +23,11 @@ urlpatterns = [
     path('api/v1/storage', storage_api_view),
     path('api/v1/', include(themes_router.urls)),
     path('api/v1/', include(cards_router.urls)),
+    path('api/v1/', include(themes_comments_router.urls)),
+    path('api/v1/', include(cards_comments_router.urls)),
+    path('api/v1/', include(users_router.urls)),
     path('', IndexTemplateView.as_view(), name="index"),
     path('storage', storage, name="storage"),
-    # path('api/v1/parent_theme', ThemesViewSet.as_view()),
-    # path('api/v1/parent_theme/<int:pk>', ThemesViewSet.as_view()),
-    # path('api/v1/card/<int:pk>', CardsAPIView.as_view()),
-    # path('api/v1/card', CardsAPIView.as_view()),
     path('storage/theme/<int:parent_theme>', open_theme, name="open_theme"),
     path('storage/card/<int:card>', open_card, name="open_card"),
     path('storage/parent_theme/<int:parent_theme>/add_card_form', AddCardView.as_view(), name="add_card_form"),

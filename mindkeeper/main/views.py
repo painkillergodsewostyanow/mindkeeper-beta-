@@ -1,18 +1,18 @@
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
 from django.views import View
 from django.views.generic import TemplateView, UpdateView
 from django.shortcuts import render, HttpResponseRedirect, redirect
 from rest_framework.decorators import api_view
-from rest_framework.generics import CreateAPIView
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, \
     ListModelMixin
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
-from .permissions import CheckAccess
+from rest_framework.views import APIView
+from rest_framework.viewsets import GenericViewSet
+from django.shortcuts import get_object_or_404
+from rest_framework.response import Response
+from users.serializers import UsersSerializers
+from .permissions import CheckCardAndThemesAccess, CheckCommentsAccess
 from .serializers import *
 from .forms import *
 from django.urls import reverse, reverse_lazy
@@ -24,7 +24,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 class IndexAPIView(APIView):
     def get(self, request):
-        print(request.user)
         if request.user.is_authenticated:
             storage_preview = [
                 {'themes': Themes.get_super_themes_by_user(request.user).values('title', 'pk')},
@@ -33,7 +32,7 @@ class IndexAPIView(APIView):
         else:
             storage_preview = 'login_required'
 
-        authors = AuthorsSerializer(User.most_popular_authors(), many=True).data
+        authors = UsersSerializers(User.most_popular_authors(), many=True).data
         themes = ThemesSerializer(Themes.most_popular_theme(), many=True).data
         cards = CardsSerializer(Cards.most_popular_cards(), many=True).data
 
@@ -140,11 +139,11 @@ def storage(request):
 class ThemesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet):
     serializer_class = ThemesSerializer
     queryset = Themes.objects.all()
-    permission_classes = (CheckAccess, )
+    permission_classes = (CheckCardAndThemesAccess, )
 
     def retrieve(self, request, *args, **kwargs):
-        father_theme = Themes.objects.get(pk=kwargs['pk'])
-        request.user.has_perm(CheckAccess, self.get_object())
+        father_theme = get_object_or_404(Themes, pk=kwargs['pk'])
+        request.user.has_perm(CheckCardAndThemesAccess, self.get_object())
         sub_themes = father_theme.get_sub_themes
         cards = father_theme.get_cards
         return Response(
@@ -160,12 +159,24 @@ class ThemesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Dest
 class CardsViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet):
     serializer_class = CardsSerializer
     queryset = Cards.objects.all()
-    permission_classes = (CheckAccess, )
+    permission_classes = (CheckCardAndThemesAccess, )
 
     def retrieve(self, request, *args, **kwargs):
-        request.user.has_perm(CheckAccess, self.get_object())
-        card = Cards.objects.get(pk=kwargs['pk'])
+        request.user.has_perm(CheckCardAndThemesAccess, self.get_object())
+        card = get_object_or_404(Cards, pk=kwargs['pk'])
         return Response({'card': CardsSerializer(card).data, 'comments': CardCommentsSerializer(card.comments, many=True).data})
+
+
+class ThemesCommentsViewSet(ListModelMixin, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet):
+    serializer_class = ThemeCommentsSerializer
+    queryset = ThemeComments.objects.all()
+    permission_classes = (CheckCommentsAccess, )
+
+
+class CardsCommentsViewSet(ListModelMixin, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet):
+    serializer_class = CardCommentsSerializer
+    queryset = CardComments.objects.all()
+    permission_classes = (CheckCommentsAccess,)
 
 
 def open_theme(request, theme):

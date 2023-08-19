@@ -7,3 +7,8 @@ User:
     phone_number = models.CharField(max_length=15, blank=True)
     is_private = models.BooleanField(default=False)
     is_receive_notifications = models.BooleanField(default=True)
+
+http://127.0.0.1:8000/api/v1/users/users_s_subscribes - подписки
+http://127.0.0.1:8000/api/v1/users/users_s_subscribers - подписчики
+
+POST http://127.0.0.1:8000/api/v1/users/subscribe - подписка/отписка data = {"author_pk": pk}

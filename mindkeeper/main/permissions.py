@@ -1,10 +1,11 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.permissions import BasePermission
 
-from main.models import Themes
+from main.models import Themes, Cards
 from main.scripts import check_access
 
 
-class CheckAccess(BasePermission):
+class CheckCardAndThemesAccess(BasePermission):
     def has_permission(self, request, view):
         if request.method == 'POST':
             parent_theme_pk = request.data.get('parent_theme', None)
@@ -30,3 +31,27 @@ class CheckAccess(BasePermission):
             return check_access(request.user, obj, obj.users_with_access)
         return True
 
+
+class CheckCommentsAccess(BasePermission):
+    def has_permission(self, request, view):
+
+        if request.method == 'POST':
+            if request.data.get('theme', False):
+                return not get_object_or_404(Themes, pk=request.data['theme']).is_private
+
+            if request.data.get('card', False):
+                return not get_object_or_404(Cards, pk=request.data['card']).is_private
+
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        if request.method == 'GET':
+            return True
+
+        if request.method in ('PUT', 'PATCH'):
+            return obj.user == request.user
+
+        if request.method == "DELETE":
+            return request.user == obj.theme.user or request.user == obj.user
+
+        return True

@@ -25,16 +25,16 @@ class CountStrategy:
     @staticmethod
     def count_received_theme(a, countable, user):
         total = 0
-        for obj in a.objects.filter(user=user):
-            total += countable.objects.filter(obj=obj).count()
+        for theme in a.objects.filter(user=user):
+            total += countable.objects.filter(theme=theme).count()
 
         return total
 
     @staticmethod
     def count_received_card(a, countable, user):
         total = 0
-        for obj in a.objects.filter(user=user):
-            total += countable.objects.filter(obj=obj).count()
+        for card in a.objects.filter(user=user):
+            total += countable.objects.filter(card=card).count()
 
         return total
 
@@ -84,15 +84,15 @@ class Themes(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, m
 
     @property
     def views(self):
-        return ThemeViews.objects.filter(obj=self).count()
+        return ThemeViews.objects.filter(theme=self).count()
 
     @property
     def likes(self):
-        return ThemeLikes.objects.filter(obj=self).count()
+        return ThemeLikes.objects.filter(theme=self).count()
 
     @property
     def comments(self):
-        return ThemeComments.objects.filter(obj=self)
+        return ThemeComments.objects.filter(theme=self)
 
     @property
     def count_comments(self):
@@ -125,12 +125,18 @@ class Themes(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, m
     @staticmethod
     def most_popular_theme():
         themes = []
-        most_popular_by_views = ThemeViews.objects.all().values('obj').order_by('-obj__count').annotate(Count('obj'))[:3]
-        most_popular_by_likes = ThemeLikes.objects.all().values('obj').order_by('-obj__count').annotate(Count('obj'))[:3]
-        most_popular_by_comments = ThemeComments.objects.all().values('obj').order_by('-obj__count').annotate(Count('obj'))[:3]
-        themes += [query['obj'] for query in most_popular_by_views]
-        themes += [query['obj'] for query in most_popular_by_likes]
-        themes += [query['obj'] for query in most_popular_by_comments]
+        most_popular_by_views = ThemeViews.objects.all().values('theme').order_by('-theme__count').annotate(
+            Count('theme'))[
+                                :3]
+        most_popular_by_likes = ThemeLikes.objects.all().values('theme').order_by('-theme__count').annotate(
+            Count('theme'))[
+                                :3]
+        most_popular_by_comments = ThemeComments.objects.all().values('theme').order_by('-theme__count').annotate(
+            Count('theme'))[:3]
+
+        themes += [query['theme'] for query in most_popular_by_views]
+        themes += [query['theme'] for query in most_popular_by_likes]
+        themes += [query['theme'] for query in most_popular_by_comments]
         shake(themes)
 
         return [Themes.objects.get(pk=theme) for theme in set(themes)][:3]
@@ -175,15 +181,15 @@ class Cards(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, mo
 
     @property
     def views(self):
-        return CardViews.objects.filter(obj=self).count()
+        return CardViews.objects.filter(card=self).count()
 
     @property
     def likes(self):
-        return CardLikes.objects.filter(obj=self).count()
+        return CardLikes.objects.filter(card=self).count()
 
     @property
     def comments(self):
-        return CardComments.objects.filter(obj=self)
+        return CardComments.objects.filter(card=self)
 
     @property
     def count_comments(self):
@@ -216,13 +222,15 @@ class Cards(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, mo
     @staticmethod
     def most_popular_cards():
         cards = []
-        most_popular_by_views = CardViews.objects.all().values('obj').order_by('-obj__count').annotate(Count('obj'))[:3]
-        most_popular_by_likes = CardLikes.objects.all().values('obj').order_by('-obj__count').annotate(Count('obj'))[:3]
-        most_popular_by_comments = CardComments.objects.all().values('obj').order_by('-obj__count').annotate(
-            Count('obj'))[:3]
-        cards += [query['obj'] for query in most_popular_by_views]
-        cards += [query['obj'] for query in most_popular_by_likes]
-        cards += [query['obj'] for query in most_popular_by_comments]
+        most_popular_by_views = CardViews.objects.all().values('card').order_by('-card__count').annotate(Count('card'))[
+                                :3]
+        most_popular_by_likes = CardLikes.objects.all().values('card').order_by('-card__count').annotate(Count('card'))[
+                                :3]
+        most_popular_by_comments = CardComments.objects.all().values('card').order_by('-card__count').annotate(
+            Count('card'))[:3]
+        cards += [query['card'] for query in most_popular_by_views]
+        cards += [query['card'] for query in most_popular_by_likes]
+        cards += [query['card'] for query in most_popular_by_comments]
         shake(cards)
 
         return [Cards.objects.get(pk=card) for card in set(cards)][:3]
@@ -254,21 +262,21 @@ class ThemeAccess(models.Model):
 
 class ThemeViews(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    obj = models.ForeignKey(Themes, on_delete=models.CASCADE)
+    theme = models.ForeignKey(Themes, on_delete=models.CASCADE)
 
 
 class CardViews(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    obj = models.ForeignKey(Cards, on_delete=models.CASCADE)
+    card = models.ForeignKey(Cards, on_delete=models.CASCADE)
 
 
 class ThemeLikes(models.Model):
-    obj = models.ForeignKey(Themes, on_delete=models.CASCADE)
+    theme = models.ForeignKey(Themes, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 
 class CardLikes(models.Model):
-    obj = models.ForeignKey(Cards, on_delete=models.CASCADE)
+    card = models.ForeignKey(Cards, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 
@@ -278,11 +286,14 @@ class Comments(models.Model):
     time_created = models.TimeField(auto_now_add=True)
     sub_comment_to = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, )
 
+    @property
+    def get_author(self):
+        return self.user
+
 
 class ThemeComments(Comments):
-    obj = models.ForeignKey(Themes, on_delete=models.CASCADE)
+    theme = models.ForeignKey(Themes, on_delete=models.CASCADE)
 
 
 class CardComments(Comments):
-    obj = models.ForeignKey(Cards, on_delete=models.CASCADE)
-
+    card = models.ForeignKey(Cards, on_delete=models.CASCADE)
