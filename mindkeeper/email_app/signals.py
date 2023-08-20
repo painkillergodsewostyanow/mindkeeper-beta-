@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save, pre_init
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
 from main.models import Themes, Cards, ThemeComments, CardComments, ThemeLikes, CardLikes
@@ -6,40 +6,42 @@ from users.models import Subscribes
 from .tasks import send_email
 
 
-@receiver(post_save, sender=Themes)
-def email_notify(sender, instance, created, update_fields, **kwargs):
-    if not instance.is_private:
-        if instance.user.get_user_s_subscribers:
-            subscribers = instance.user.get_user_s_subscribers
-            subscribers_email = [sub.email for sub in subscribers if sub.is_receive_notifications]
+@receiver(pre_save, sender=Themes)
+def email_notify(sender, instance, **kwargs):
+    if instance.id is None:
+        if not instance.is_private:
+            if instance.user.get_user_s_subscribers:
+                subscribers = instance.user.get_user_s_subscribers
+                subscribers_email = [sub.email for sub in subscribers if sub.is_receive_notifications]
 
-            email_data = {
-                'subject': f'У {instance.user.username} новая тема! {instance.title}',
-                'recipient_list': subscribers_email,
-                'message': f'У {instance.user.username} новая тема! {instance.title}\n'
-                           f'это сообщение пришло вам так как вы подписанны на {instance.user.username}\n'
-                           f'если вы хотите отменить рассылку #TODO()'
-            }
+                email_data = {
+                    'subject': f'У {instance.user.username} новая тема! {instance.title}',
+                    'recipient_list': subscribers_email,
+                    'message': f'У {instance.user.username} новая тема! {instance.title}\n'
+                               f'это сообщение пришло вам так как вы подписанны на {instance.user.username}\n'
+                               f'если вы хотите отменить рассылку #TODO()'
+                }
 
-            send_email.delay(email_data)
+                send_email.delay(email_data)
 
 
-@receiver(post_save, sender=Cards)
-def email_notify(sender, instance, created, update_fields, **kwargs):
-    if not instance.is_private:
-        if instance.user.get_user_s_subscribers:
-            subscribers = instance.user.get_user_s_subscribers
-            subscribers_email = [sub.email for sub in subscribers if sub.is_receive_notifications]
+@receiver(pre_save, sender=Cards)
+def email_notify(sender, instance, **kwargs):
+    if instance.id is None:
+        if not instance.is_private:
+            if instance.user.get_user_s_subscribers:
+                subscribers = instance.user.get_user_s_subscribers
+                subscribers_email = [sub.email for sub in subscribers if sub.is_receive_notifications]
 
-            email_data = {
-                'subject': f'У {instance.user.username} новая карточка! {instance.title}',
-                'recipient_list': subscribers_email,
-                'message': f'У {instance.user.username} новая карточка! {instance.title}\n'
-                           f'это сообщение пришло вам так как вы подписанны на {instance.user.username}\n'
-                           f'если вы хотите отменить рассылку #TODO()'
-            }
+                email_data = {
+                    'subject': f'У {instance.user.username} новая карточка! {instance.title}',
+                    'recipient_list': subscribers_email,
+                    'message': f'У {instance.user.username} новая карточка! {instance.title}\n'
+                               f'это сообщение пришло вам так как вы подписанны на {instance.user.username}\n'
+                               f'если вы хотите отменить рассылку #TODO()'
+                }
 
-            send_email.delay(email_data)
+                send_email.delay(email_data)
 
 
 @receiver(post_save, sender=CardComments)
