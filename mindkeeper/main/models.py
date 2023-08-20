@@ -4,8 +4,6 @@ from django.db import models
 from django.db.models import Count
 from random import shuffle as shake
 from users.models import User
-from django_cleanup import cleanup
-from .mixins import ResizeImageOnSaveMixin, CompressImageOnSaveMixin
 
 
 class CountableMixin:
@@ -39,10 +37,7 @@ class CountStrategy:
         return total
 
 
-@cleanup.select
-class Themes(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, models.Model):
-    quality = 40
-    image = models.ImageField(upload_to="themes_image", blank=True)
+class Themes(CountableMixin, models.Model):
     is_private = models.BooleanField(default=False)
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Автор")
     title = models.CharField(max_length=255, verbose_name="Название")
@@ -126,11 +121,9 @@ class Themes(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, m
     def most_popular_theme():
         themes = []
         most_popular_by_views = ThemeViews.objects.all().values('theme').order_by('-theme__count').annotate(
-            Count('theme'))[
-                                :3]
+            Count('theme'))[:3]
         most_popular_by_likes = ThemeLikes.objects.all().values('theme').order_by('-theme__count').annotate(
-            Count('theme'))[
-                                :3]
+            Count('theme'))[:3]
         most_popular_by_comments = ThemeComments.objects.all().values('theme').order_by('-theme__count').annotate(
             Count('theme'))[:3]
 
@@ -142,11 +135,8 @@ class Themes(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, m
         return [Themes.objects.get(pk=theme) for theme in set(themes)][:3]
 
 
-@cleanup.select
-class Cards(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, models.Model):
-    quality = 40
+class Cards(CountableMixin, models.Model):
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Автор")
-    image = models.ImageField(upload_to="card_image", blank=True)
     is_private = models.BooleanField(default=False)
     parent_theme = models.ForeignKey(to=Themes, on_delete=models.CASCADE, verbose_name="Тема",
                                      blank=True, null=True,
@@ -228,11 +218,11 @@ class Cards(CompressImageOnSaveMixin, ResizeImageOnSaveMixin, CountableMixin, mo
                                 :3]
         most_popular_by_comments = CardComments.objects.all().values('card').order_by('-card__count').annotate(
             Count('card'))[:3]
+        print(most_popular_by_comments)
         cards += [query['card'] for query in most_popular_by_views]
         cards += [query['card'] for query in most_popular_by_likes]
         cards += [query['card'] for query in most_popular_by_comments]
         shake(cards)
-
         return [Cards.objects.get(pk=card) for card in set(cards)][:3]
 
 
@@ -245,7 +235,7 @@ class CardAccess(models.Model):
         verbose_name_plural = 'Доступ к карточкам'
 
     def __str__(self):
-        return f"{self.user}->{self.card}"
+        return f"{self.user} -> {self.card}"
 
 
 class ThemeAccess(models.Model):
@@ -257,7 +247,7 @@ class ThemeAccess(models.Model):
         verbose_name_plural = 'Доступ к темам'
 
     def __str__(self):
-        return f"{self.user}->{self.theme}"
+        return f"{self.user} -> {self.theme}"
 
 
 class ThemeViews(models.Model):
@@ -285,10 +275,6 @@ class Comments(models.Model):
     content = models.TextField()
     time_created = models.TimeField(auto_now_add=True)
     sub_comment_to = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, )
-
-    @property
-    def get_author(self):
-        return self.user
 
 
 class ThemeComments(Comments):

@@ -62,7 +62,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @staticmethod
     def most_popular_authors():
-        count_subscribes = Subscribes.objects.all().values('author').order_by('-author__count').annotate(Count('author'))[:3]
+        count_subscribes = Subscribes.objects.all().values('author').order_by('-author__count').annotate(
+            Count('author'))[:3]
         users = [User.objects.get(pk=subscribes['author']) for subscribes in count_subscribes]
         return users
 

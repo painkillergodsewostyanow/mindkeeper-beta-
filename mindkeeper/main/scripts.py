@@ -2,12 +2,7 @@ from rest_framework.response import Response
 from django.conf import settings
 
 
-def check_access(user, to=None,  users_with_access=None):
-    # if getattr(to, 'obj', False):
-    #     if to.obj.user == user:
-    #         return True
-    #     return False
-
+def check_access(user, to=None, users_with_access=None):
     if users_with_access:
         if user in users_with_access:
             return True
@@ -17,15 +12,3 @@ def check_access(user, to=None,  users_with_access=None):
             return True
 
     return False
-
-
-def ajax_or_api_login_required(func):
-
-    def wrapper(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return Response({"login_url": settings.LOGIN_URL}, status=401)
-        return func(request, *args, **kwargs)
-
-    return wrapper
-
-

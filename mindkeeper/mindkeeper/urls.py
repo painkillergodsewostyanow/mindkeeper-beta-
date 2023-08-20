@@ -20,12 +20,9 @@ from django.conf.urls.static import static
 from django.conf import settings
 import debug_toolbar
 
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('main.urls', namespace='main')),
-    path('users/', include("users.urls", namespace="users")),
-    path('summernote/', include('django_summernote.urls')),
 ]
 
 if settings.DEBUG:

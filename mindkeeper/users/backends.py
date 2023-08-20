@@ -22,10 +22,8 @@ class AuthByUsernameOrEmailBackends(object):
 
         if user:
             if not user.is_active:
-
                 raise AuthenticationFailed(
                     'Подтвердите почту'
                 )
 
         return user if user.check_password(password) else None
-

@@ -6,4 +6,5 @@ class MainConfig(AppConfig):
     name = 'main'
 
     def ready(self):
+        import email_app.signals
         import main.signals

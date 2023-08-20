@@ -1,9 +1,0 @@
-POST http://127.0.0.1:8000/api/v1/themes/ - Создание темы
-data = 
-{
-	"title": str,
-	"is_private": may_be_null,
-	"parent_theme": int(parent_theme_pk)/may_be_null
-}
-
-http://127.0.0.1:8000/api/v1/themes/<pk> - действие в зависимости от выбранного метода, разрешенные методы: GET PUT PATCH DELETE 
