@@ -34,26 +34,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         return [sub.subscriber for sub in subs]
 
     @property
-    def total_like(self):
-        from main.models import Themes, Cards
-        return Themes.count_user_s_likes_received(self) + Cards.count_user_s_likes_received(self)
-
-    @property
-    def total_views(self):
-        from main.models import Themes, Cards
-        return Themes.count_user_s_views_received(self) + Cards.count_user_s_views_received(self)
-
-    @property
     def total_subscribers(self):
         return len(self.get_user_s_subscribers)
 
     @property
     def total_subscribes(self):
         return len(self.get_user_s_subscribes)
-
-    def total_comments(self):
-        from main.models import Themes, Cards
-        return Themes.count_user_s_comment_received(self) + Cards.count_user_s_comment_received(self)
 
     def is_user_subscribed(self, user):
         if Subscribes.objects.filter(author=self, subscriber=user):
