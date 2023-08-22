@@ -21,20 +21,12 @@ class CountableMixin:
 
 class CountStrategy:
     @staticmethod
-    def count_received_theme(a, countable, user):
-        total = 0
-        for theme in a.objects.filter(user=user):
-            total += countable.objects.filter(theme=theme).count()
-
-        return total
+    def count_received_theme(model, countable, user):
+        return sum([countable.objects.filter(theme=theme).count() for theme in model.objects.filter(user=user)])
 
     @staticmethod
-    def count_received_card(a, countable, user):
-        total = 0
-        for card in a.objects.filter(user=user):
-            total += countable.objects.filter(card=card).count()
-
-        return total
+    def count_received_card(model, countable, user):
+        return sum([countable.objects.filter(card=card).count() for card in model.objects.filter(user=user)])
 
 
 class Themes(CountableMixin, models.Model):
@@ -95,14 +87,17 @@ class Themes(CountableMixin, models.Model):
 
     @classmethod
     def count_user_s_likes_received(cls, user):
+        print(user)
         return cls.count_received(ThemeLikes, user)
 
     @classmethod
     def count_user_s_views_received(cls, user):
+        print(user)
         return cls.count_received(ThemeViews, user)
 
     @classmethod
     def count_user_s_comment_received(cls, user):
+        print(user)
         return cls.count_received(ThemeComments, user)
 
     @classmethod

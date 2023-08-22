@@ -1,10 +1,12 @@
 from rest_framework import serializers
 
+from main.models import Themes, Cards
 from .models import User
 
 
 class CurrentUserSerializer(serializers.ModelSerializer):
-    # Для вывода станицы конкретного пользователя (расширенная инфа)
+    """ Для вывода станицы конкретного
+    пользователя (расширенная инфа) """
 
     class Meta:
         model = User
@@ -22,7 +24,8 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
 
 class UsersSerializer(serializers.ModelSerializer):
-    # Для вывода preview пользователя (на главной в поиске и тд)
+    """ Для вывода preview пользователя
+    (на главной в поиске и тд)  """
 
     class Meta:
         model = User

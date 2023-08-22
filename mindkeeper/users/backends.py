@@ -4,6 +4,10 @@ from rest_framework.exceptions import AuthenticationFailed
 
 
 class AuthByUsernameOrEmailBackends(object):
+
+    """ ПОЛЬЗОВАТЕЛЬ МОЖЕТ АВТОРИЗОВАТЬСЯ
+     И ПО USERNAME И ПО EMAIL"""
+
     supports_object_permissions = True
     supports_anonymous_user = False
     supports_inactive_user = False
