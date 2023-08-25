@@ -47,7 +47,7 @@ def email_notify(sender, instance, **kwargs):
 @receiver(pre_save, sender=CardComments)
 def email_notify(sender, instance, **kwargs):
     if instance.id is None:
-        if instance.card.user.is_receive_notifications:
+        if instance.cards.user.is_receive_notifications:
             if instance.sub_comment_to:
                 email_data = {
                     'subject': f'Пользователь {instance.user.username} ответил на ваш коментарий {instance.sub_comment_to.content[:10]}...',
@@ -69,7 +69,7 @@ def email_notify(sender, instance, **kwargs):
 @receiver(pre_save, sender=ThemeComments)
 def email_notify(sender, instance, **kwargs):
     if instance.id is None:
-        if instance.theme.user.is_receive_notifications:
+        if instance.themes.user.is_receive_notifications:
             if instance.sub_comment_to:
                 email_data = {
                     'subject': f'Пользователь {instance.user.username} ответил на ваш коментарий {instance.sub_comment_to.content[:10]}...',
@@ -80,9 +80,9 @@ def email_notify(sender, instance, **kwargs):
 
             else:
                 email_data = {
-                    'subject': f'Пользователь {instance.user.username} оставил коментарий вашей теме {instance.theme.title}...',
-                    'recipient_list': [instance.theme.user.email],
-                    'message': f'Пользователь {instance.user.username} оставил коментарий вашей карточке {instance.theme.title}... \n'
+                    'subject': f'Пользователь {instance.user.username} оставил коментарий вашей теме {instance.themes.title}...',
+                    'recipient_list': [instance.themes.user.email],
+                    'message': f'Пользователь {instance.user.username} оставил коментарий вашей карточке {instance.themes.title}... \n'
                                f'{instance.content}',
                 }
 
@@ -95,9 +95,9 @@ def email_notify(sender, instance, **kwargs):
     if instance.user.is_receive_notifications:
         email_data = {
 
-            'subject': f"ваша тема {instance.theme.title} понравилась {instance.user.username}",
-            'recipient_list': [instance.theme.user.email],
-            'message': f"ваша тема {instance.theme.title} понравилась {instance.user.username}",
+            'subject': f"ваша тема {instance.themes.title} понравилась {instance.user.username}",
+            'recipient_list': [instance.themes.user.email],
+            'message': f"ваша тема {instance.themes.title} понравилась {instance.user.username}",
 
         }
         send_email.delay(email_data)
@@ -108,9 +108,9 @@ def email_notify(sender, instance, **kwargs):
     if instance.user.is_receive_notifications:
         email_data = {
 
-            'subject': f"ваша карточка {instance.card.title} понравилась {instance.user.username}",
-            'recipient_list': [instance.card.user.email],
-            'message': f"ваша карточка {instance.card.title} понравилась {instance.user.username}",
+            'subject': f"ваша карточка {instance.cards.title} понравилась {instance.user.username}",
+            'recipient_list': [instance.cards.user.email],
+            'message': f"ваша карточка {instance.cards.title} понравилась {instance.user.username}",
 
         }
         send_email.delay(email_data)

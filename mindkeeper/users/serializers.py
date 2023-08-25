@@ -27,13 +27,19 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         )
 
     def get_total_likes(self, obj):
-        return Themes.count_user_s_likes_received(obj) + Cards.count_user_s_likes_received(obj)
+        theme_likes = Themes.count_user_s_likes_received(obj)
+        card_likes = Cards.count_user_s_likes_received(obj)
+        return theme_likes if theme_likes is not None else 0 + card_likes if card_likes is not None else 0
 
     def get_total_views(self, obj):
-        return Themes.count_user_s_views_received(obj) + Cards.count_user_s_views_received(obj)
+        theme_views = Themes.count_user_s_views_received(obj)
+        card_views = Cards.count_user_s_views_received(obj)
+        return theme_views if theme_views is not None else 0 + card_views if card_views is not None else 0
 
     def get_total_comments(self, obj):
-        return Themes.count_user_s_comment_received(obj) + Cards.count_user_s_comment_received(obj)
+        theme_comments = Themes.count_user_s_comment_received(obj)
+        card_comments = Cards.count_user_s_comment_received(obj)
+        return theme_comments if theme_comments is not None else 0 + card_comments if card_comments is not None else 0
 
 
 class UsersSerializer(serializers.ModelSerializer):

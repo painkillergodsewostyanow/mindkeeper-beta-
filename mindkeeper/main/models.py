@@ -1,35 +1,105 @@
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField, SearchVector
 from django.db import models
-from django.db.models import Count
-from random import shuffle as shake
+from django.db.models import Count, Sum
 from users.models import User
 
 
-class CountableMixin:
+class ThemeViews(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class CardViews(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class ThemeLikes(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class CardLikes(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class CardComments(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    time_created = models.TimeField(auto_now_add=True)
+    sub_comment_to = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, )
+
+
+class Cards(models.Model):
+    user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Автор")
+    is_private = models.BooleanField(default=False)
+    title = models.CharField(max_length=255, verbose_name="Название")
+    content = models.TextField(verbose_name="Контент")
+
+    search_vector = SearchVectorField(null=True)
+
+    comments = models.ManyToManyField(CardComments)
+    likes = models.ManyToManyField(CardLikes)
+    views = models.ManyToManyField(CardViews)
+
+    class Meta:
+        verbose_name = "Карточка"
+        verbose_name_plural = "Карточки"
+        indexes = [GinIndex(fields=["search_vector"])]
+
+    def __str__(self):
+        return f"{self.title}"
+
+    def update_search_vector(self, *args):
+        qs = Cards.objects.filter(pk=self.pk)
+        qs.update(search_vector=SearchVector(*args))
+
+    @staticmethod
+    def get_super_cards_by_user(user):
+        return Cards.objects.filter(user=user, themes__isnull=True)
+        # TODO()
+
+    @property
+    def users_with_access(self):
+        lst_users_with_access = []
+        for row in CardAccess.objects.filter(card=self).values('user'):
+            lst_users_with_access.append(User.objects.get(pk=row['user']))
+        return lst_users_with_access
+
     @classmethod
-    def count_received(cls, countable, user):
-        if issubclass(cls, Themes):
-            return CountStrategy.count_received_theme(Themes, countable, user)
-        if issubclass(cls, Cards):
-            return CountStrategy.count_received_card(Cards, countable, user)
+    def count_user_s_likes_received(cls, user):
+        return Cards.objects.filter(user=user)\
+            .prefetch_related('likes')\
+            .annotate(count_likes=Count('likes'))\
+            .aggregate(sum_count_likes=Sum('count_likes')).get('sum_count_likes', 0)
+
+    @classmethod
+    def count_user_s_views_received(cls, user):
+        return Cards.objects.filter(user=user)\
+            .prefetch_related('views')\
+            .annotate(count_views=Count('views'))\
+            .aggregate(sum_count_views=Sum('count_views')).get('sum_count_views', 0)
+
+    @classmethod
+    def count_user_s_comment_received(cls, user):
+        return Cards.objects.filter(user=user) \
+            .prefetch_related('comments') \
+            .annotate(count_comments=Count('comments')) \
+            .aggregate(sum_count_comments=Sum('count_comments')).get('sum_count_comments', 0)
 
     @staticmethod
-    def count_placed(countable, user):
-        return countable.objects.filter(user=user).count()
+    def most_popular_cards():
+        return Cards.objects.annotate(
+            count_likes=Count('likes'), count_comments=Count('comments'), count_views=Count('views')
+        ).order_by('likes', 'comments', 'views')[:3]
 
 
-class CountStrategy:
-    @staticmethod
-    def count_received_theme(model, countable, user):
-        return sum([countable.objects.filter(theme=theme).count() for theme in model.objects.filter(user=user)])
-
-    @staticmethod
-    def count_received_card(model, countable, user):
-        return sum([countable.objects.filter(card=card).count() for card in model.objects.filter(user=user)])
+class ThemeComments(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    time_created = models.TimeField(auto_now_add=True)
+    sub_comment_to = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, )
 
 
-class Themes(CountableMixin, models.Model):
+class Themes(models.Model):
     is_private = models.BooleanField(default=False)
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Автор")
     title = models.CharField(max_length=255, verbose_name="Название")
@@ -37,6 +107,12 @@ class Themes(CountableMixin, models.Model):
                                      verbose_name="Подтема для")
 
     search_vector = SearchVectorField(null=True)
+
+    comments = models.ManyToManyField(ThemeComments, related_name='comments')
+    likes = models.ManyToManyField(ThemeLikes)
+    views = models.ManyToManyField(ThemeViews)
+    sub_themes = models.ManyToManyField('self')
+    sub_cards = models.ManyToManyField(Cards)
 
     class Meta:
         verbose_name = "Тема"
@@ -47,12 +123,14 @@ class Themes(CountableMixin, models.Model):
         return f"{self.title}"
 
     def update_search_vector(self, *args):
+        # TODO(update_serch vectore)
         qs = Themes.objects.filter(pk=self.pk)
         qs.update(search_vector=SearchVector(*args))
 
     @staticmethod
     def get_super_themes_by_user(user):
-        return Themes.objects.filter(user=user, parent_theme__isnull=True)
+        # TODO()
+        return Themes.objects.filter(user=user)
 
     @property
     def users_with_access(self):
@@ -69,156 +147,32 @@ class Themes(CountableMixin, models.Model):
     def get_cards(self):
         return Cards.objects.filter(parent_theme=self)
 
-    @property
-    def views(self):
-        return ThemeViews.objects.filter(theme=self).count()
-
-    @property
-    def likes(self):
-        return ThemeLikes.objects.filter(theme=self).count()
-
-    @property
-    def comments(self):
-        return ThemeComments.objects.filter(theme=self)
-
-    @property
-    def count_comments(self):
-        return self.comments.count()
-
     @classmethod
     def count_user_s_likes_received(cls, user):
-        print(user)
-        return cls.count_received(ThemeLikes, user)
+        return Themes.objects.filter(user=user)\
+            .prefetch_related('likes')\
+            .annotate(count_likes=Count('likes'))\
+            .aggregate(sum_count_likes=Sum('count_likes')).get('sum_count_likes', 0)
 
     @classmethod
     def count_user_s_views_received(cls, user):
-        print(user)
-        return cls.count_received(ThemeViews, user)
+        return Themes.objects.filter(user=user)\
+            .prefetch_related('views')\
+            .annotate(count_views=Count('views'))\
+            .aggregate(sum_count_views=Sum('count_views')).get('sum_count_views', 0)
 
     @classmethod
     def count_user_s_comment_received(cls, user):
-        print(user)
-        return cls.count_received(ThemeComments, user)
-
-    @classmethod
-    def count_user_s_likes_placed(cls, user):
-        return cls.count_placed(ThemeLikes, user)
-
-    @classmethod
-    def count_user_s_views_placed(cls, user):
-        return cls.count_placed(ThemeViews, user)
-
-    @classmethod
-    def count_user_s_comment_placed(cls, user):
-        return cls.count_placed(ThemeComments, user)
+        return Themes.objects.filter(user=user) \
+            .prefetch_related('comments') \
+            .annotate(count_comments=Count('comments')) \
+            .aggregate(sum_count_comments=Sum('count_comments')).get('sum_count_comments', 0)
 
     @staticmethod
     def most_popular_theme():
-        themes = []
-        most_popular_by_views = ThemeViews.objects.all().values('theme').order_by('-theme__count').annotate(
-            Count('theme'))[:3]
-        most_popular_by_likes = ThemeLikes.objects.all().values('theme').order_by('-theme__count').annotate(
-            Count('theme'))[:3]
-        most_popular_by_comments = ThemeComments.objects.all().values('theme').order_by('-theme__count').annotate(
-            Count('theme'))[:3]
-
-        themes += [query['theme'] for query in most_popular_by_views]
-        themes += [query['theme'] for query in most_popular_by_likes]
-        themes += [query['theme'] for query in most_popular_by_comments]
-        shake(themes)
-
-        return [Themes.objects.get(pk=theme) for theme in set(themes)][:3]
-
-
-class Cards(CountableMixin, models.Model):
-    user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Автор")
-    is_private = models.BooleanField(default=False)
-    parent_theme = models.ForeignKey(to=Themes, on_delete=models.CASCADE, verbose_name="Тема",
-                                     blank=True, null=True,
-                                     )
-    title = models.CharField(max_length=255, verbose_name="Название")
-    content = models.TextField(verbose_name="Контент")
-
-    search_vector = SearchVectorField(null=True)
-
-    class Meta:
-        verbose_name = "Карточка"
-        verbose_name_plural = "Карточки"
-        indexes = [GinIndex(fields=["search_vector"])]
-
-    def __str__(self):
-        return f"{self.parent_theme}, {self.title}"
-
-    def update_search_vector(self, *args):
-        qs = Cards.objects.filter(pk=self.pk)
-        qs.update(search_vector=SearchVector(*args))
-
-    @staticmethod
-    def get_super_cards_by_user(user):
-        return Cards.objects.filter(user=user, parent_theme__isnull=True)
-
-    @property
-    def users_with_access(self):
-        lst_users_with_access = []
-        for row in CardAccess.objects.filter(card=self).values('user'):
-            lst_users_with_access.append(User.objects.get(pk=row['user']))
-        return lst_users_with_access
-
-    @property
-    def views(self):
-        return CardViews.objects.filter(card=self).count()
-
-    @property
-    def likes(self):
-        return CardLikes.objects.filter(card=self).count()
-
-    @property
-    def comments(self):
-        return CardComments.objects.filter(card=self)
-
-    @property
-    def count_comments(self):
-        return self.comments.count()
-
-    @classmethod
-    def count_user_s_likes_received(cls, user):
-        return cls.count_received(CardLikes, user)
-
-    @classmethod
-    def count_user_s_views_received(cls, user):
-        return cls.count_received(CardViews, user)
-
-    @classmethod
-    def count_user_s_comment_received(cls, user):
-        return cls.count_received(CardComments, user)
-
-    @classmethod
-    def count_user_s_likes_placed(cls, user):
-        return cls.count_placed(CardLikes, user)
-
-    @classmethod
-    def count_user_s_views_placed(cls, user):
-        return cls.count_placed(CardViews, user)
-
-    @classmethod
-    def count_user_s_comment_placed(cls, user):
-        return cls.count_placed(CardComments, user)
-
-    @staticmethod
-    def most_popular_cards():
-        cards = []
-        most_popular_by_views = CardViews.objects.all().values('card').order_by('-card__count').annotate(Count('card'))[
-                                :3]
-        most_popular_by_likes = CardLikes.objects.all().values('card').order_by('-card__count').annotate(Count('card'))[
-                                :3]
-        most_popular_by_comments = CardComments.objects.all().values('card').order_by('-card__count').annotate(
-            Count('card'))[:3]
-        print(most_popular_by_comments)
-        cards += [query['card'] for query in most_popular_by_views]
-        cards += [query['card'] for query in most_popular_by_likes]
-        cards += [query['card'] for query in most_popular_by_comments]
-        shake(cards)
-        return [Cards.objects.get(pk=card) for card in set(cards)][:3]
+        return Themes.objects.annotate(
+            count_likes=Count('likes'), count_comments=Count('comments'), count_views=Count('views')
+        ).order_by('likes', 'comments', 'views')[:3]
 
 
 class CardAccess(models.Model):
@@ -244,37 +198,3 @@ class ThemeAccess(models.Model):
     def __str__(self):
         return f"{self.user} -> {self.theme}"
 
-
-class ThemeViews(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    theme = models.ForeignKey(Themes, on_delete=models.CASCADE)
-
-
-class CardViews(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    card = models.ForeignKey(Cards, on_delete=models.CASCADE)
-
-
-class ThemeLikes(models.Model):
-    theme = models.ForeignKey(Themes, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-
-
-class CardLikes(models.Model):
-    card = models.ForeignKey(Cards, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-
-
-class Comments(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    content = models.TextField()
-    time_created = models.TimeField(auto_now_add=True)
-    sub_comment_to = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, )
-
-
-class ThemeComments(Comments):
-    theme = models.ForeignKey(Themes, on_delete=models.CASCADE)
-
-
-class CardComments(Comments):
-    card = models.ForeignKey(Cards, on_delete=models.CASCADE)

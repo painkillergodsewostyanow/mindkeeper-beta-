@@ -52,6 +52,6 @@ class CheckCommentsAccess(BasePermission):
             return obj.user == request.user
 
         if request.method == "DELETE":
-            return request.user == obj.theme.user or request.user == obj.user
+            return request.user == obj.user
 
         return True

@@ -1,4 +1,7 @@
-from rest_framework.decorators import action
+from django.shortcuts import get_object_or_404
+from rest_framework.decorators import action, permission_classes
+from rest_framework.permissions import AllowAny
+
 from users.models import Subscribes, User
 from .serializers import CurrentUserSerializer, UsersSerializer
 from djoser.views import UserViewSet
@@ -14,17 +17,21 @@ class CustomUserViewSet(UserViewSet):
         else:
             return super(self.__class__, self).me(request, *args, **kwargs)
 
-    @action(['GET'], detail=False)
+    @permission_classes([AllowAny])
+    def retrieve(self, request, *args, **kwargs):
+        return Response(CurrentUserSerializer(instance=get_object_or_404(User, pk=kwargs['id'])).data)
+
+    @action(['GET'], detail=True)
     def users_s_subscribes(self, request, *args, **kwargs):
-        return Response(UsersSerializer(request.user.get_user_s_subscribes, many=True).data)
+        return Response(UsersSerializer(get_object_or_404(User, pk=kwargs['id']).get_user_s_subscribes, many=True).data)
 
-    @action(['GET'], detail=False)
+    @action(['GET'], detail=True)
     def users_s_subscribers(self, request, *args, **kwargs):
-        return Response(UsersSerializer(request.user.get_user_s_subscribers, many=True).data)
+        return Response(UsersSerializer(get_object_or_404(User, pk=kwargs['id']).get_user_s_subscribers, many=True).data)
 
-    @action(['POST'], detail=False)
+    @action(['POST'], detail=True)
     def subscribe(self, request, *args, **kwargs):
-        author = User.objects.get(pk=request.data['author_pk'])
+        author = User.objects.get(pk=kwargs['id'])
         subscribe = Subscribes.objects.filter(author=author, subscriber=request.user)
 
         if subscribe:
